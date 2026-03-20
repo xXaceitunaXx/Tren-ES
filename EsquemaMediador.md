@@ -33,8 +33,8 @@ erDiagram
     }
 
     DISTANCIA {
-	string estacion1 PK
-	string estacion2 PK
+	string estacion1 PK,FK
+	string estacion2 PK,FK
 	float distancia
     }
 
@@ -74,5 +74,6 @@ erDiagram
     RUTA ||--o{ VIAJE : "planifica"
     RUTA ||--|{ PARADA : "se compone de"
     ESTACION ||--o{ PARADA : "pertenece a"
-    ESTACION }|--|{ DISTANCIA : "tiene con"
+    ESTACION ||--o{ DISTANCIA : "es origen (estacion1)"
+    ESTACION ||--o{ DISTANCIA : "es destino (estacion2)"
 ```
