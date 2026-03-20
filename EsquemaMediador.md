@@ -18,6 +18,7 @@ Hemos elegido realizar la práctica sobre un supuesto propio, distinto de los pr
 * Viaje(**id**, _ruta_, fecha, horario)
 * Parada(***ruta***, ***estacion***, n_secuencia, km_origen)
 * Ruta(**id**, _origen_, _destino_, tipo)
+* Distancia(***estacion1***, ***estacion2***, distancia)
 
 ```mermaid
 erDiagram
@@ -29,6 +30,12 @@ erDiagram
         float longitud
         string provincia
         string CCAA
+    }
+
+    DISTANCIA {
+	string estacion1 PK
+	string estacion2 PK
+	float distancia
     }
 
     ESTACION {
@@ -67,4 +74,5 @@ erDiagram
     RUTA ||--o{ VIAJE : "planifica"
     RUTA ||--|{ PARADA : "se compone de"
     ESTACION ||--o{ PARADA : "pertenece a"
+    ESTACION }|--|{ DISTANCIA : "tiene con"
 ```
