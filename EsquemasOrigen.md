@@ -49,7 +49,8 @@ erDiagram
         text PROVINCIA
         text PAIS
     }
-
+```
+```mermaid
     horarios_renfe_HORARIO {
         text RECORRIDO "TREN/RECORRIDO"
         time SALIDA
