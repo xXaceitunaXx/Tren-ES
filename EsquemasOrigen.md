@@ -51,6 +51,7 @@ erDiagram
     }
 ```
 ```mermaid
+erDiagram
     horarios_renfe_HORARIO {
         text RECORRIDO "TREN/RECORRIDO"
         time SALIDA
