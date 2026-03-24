@@ -14,6 +14,19 @@ En este documento se muestran los esquemas de las fuentes de datos origen de nue
     - Renfe horarios. Un pequeño formulario desde el que se puede obtener la información de todos los horarios de tramos (Estación Origen, Estación Destino) disponibles en la web de renfe y las rutas correspondientes.
 - ADIF. Información en tiempo real de las salidas y llegadas en cada estación. Nos permite contrastar los horarios planificados con los reales.
 
+## Forma consultiva de las tablas origen
+
+* wikidata_MUNICIPIO(codigo, label, poblacion, coordenadas)
+* INE_MUNICIPIO(cmun, cpro, dc, nombre)
+* INE_PROVINCIA(cpro, nombre, codauto, ccaa)
+* data_renfe_ESTACION(id, codigo, descripcion, latitud, longitud, direccion, c_p, poblacion, provincia, pais)
+* horarios_renfe_HORARIO(recorrido, salida, llegada, duracion)
+* horarios_renfe_RUTA(codigo, paradas)
+* adif_SALIDAS(hora, destino, tren, via)
+* adif_LLEGADAS(hora, origen, tren, via)
+
+
+
 ```mermaid
 erDiagram
     wikidata_MUNICIPIO {
