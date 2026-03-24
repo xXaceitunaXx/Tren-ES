@@ -8,7 +8,7 @@ INSERT INTO Municipio (id, nombre, n_habitantes, latitud, longitud, provincia, c
 (7, 'Zamora', 59475, 41.503300, -5.744600, 'Zamora', 'Castilla y León'),
 (8, 'Ávila', 58085, 40.656600, -4.681900, 'Ávila', 'Castilla y León'),
 (9, 'Soria', 39821, 41.763300, -2.468800, 'Soria', 'Castilla y León'),
-(10, 'Madrid', 3334730, 40.416800, -3.703800, 'Madrid', 'Comunidad de Madrid');
+(10, 'Madrid', 3556, 40.416800, -3.703800, 'Madrid', 'Comunidad de Madrid');
 
 INSERT INTO Estacion (id, nombre, municipio_id, latitud, longitud) VALUES
 (1, 'Valladolid Campo Grande', 1, 41.642000, -4.727000),
@@ -41,9 +41,9 @@ INSERT INTO Ruta (id, origen, destino, tipo) VALUES
 
 INSERT INTO Parada (ruta, estacion, n_secuencia, km_origen) VALUES
 (1, 1, 1, 0.00),
-(1, 10, 2, 193.00),
+(1, 10, 2, 13.00),
 (2, 10, 1, 0.00),
-(2, 1, 2, 193.00),
+(2, 1, 2, 13.00),
 (3, 1, 1, 0.00),
 (3, 2, 2, 108.00),
 (4, 2, 1, 0.00),
