@@ -1,8 +1,3 @@
----
-title: Sistema Agregador de Ferrocarriles Españoles
-author: Víctor Elvira Fernández, Juan Horrillo Crespo, Sergio Velasco de Pedro
----
-
 # Tren-ES 
 
 ## Supuesto elegido

@@ -7,7 +7,8 @@ Necesitamos concatenar las coordenadas de latitud y longitud extraidas en los es
 `wikidata_MUNICIPIO(codigo, label, poblacion, coordenadas)`$\subseteq$
 
 ```
-Municipio(codigo, label, poblacion, latitud, longitud, v1, v2), coordenadas = coords(latitud, longitud)
+Municipio(codigo, label, poblacion, latitud, longitud, v1, v2), 
+coordenadas = coords(latitud, longitud)
 ```
 
 ### INE_MUNICIPIO
@@ -37,7 +38,8 @@ Como estación venía de un formulario con varios campos que no extraemos, no po
 `data_renfe_ESTACION(v1, id, descripcion, latitud, longitud, v2, c_p, poblacion, provincia, pais)`$\subseteq$
 
 ```
-Estacion(id, id_mun, descripcion, latitud, longitud), Municipio(id_mun, poblacion, v3, v4, v5, provincia, v6)
+Estacion(id, id_mun, descripcion, latitud, longitud), 
+Municipio(id_mun, poblacion, v3, v4, v5, provincia, v6)
 ```
 
 ### horarios_renfe_RUTA
@@ -57,7 +59,8 @@ No podemos conseguir los campos tren y via desde nuestros esquemas, por lo que l
 `adif_SALIDAS(hora, destino, tren, via, estacion)`$\subseteq$
 
 ```
-Viaje(id_viaje, ruta, fecha, hora), Ruta(ruta, origen, id_estacion_destino, tipo), Estacion(id_estacion_destino, estacion, destino, v2, v3)
+Viaje(id_viaje, ruta, fecha, hora), Ruta(ruta, origen, id_estacion_destino, tipo), 
+Estacion(id_estacion_destino, estacion, destino, v2, v3)
 ```
 
 Al igual que en los esquemas GAV, no se ha considerado ninguna simplificación.
