@@ -1,8 +1,8 @@
-## Reformulación GAV y LAV de las Consultas
+# Reformulación GAV y LAV de las Consultas
 
 En esta sección vamos a hacer la reformulación GAV y LAV de las consultas. Para la reformulación GAV emplearemos la descomposición de consultas y para la reformulación LAV utilizaremos el algoritmo de los *Buckets*.
 
-### Consulta 1
+## Consulta 1
 
 * Estaciones de tren en poblaciones de menos de 10000 habitantes.
 
@@ -14,7 +14,7 @@ lat_e, lon_e), Municipio(nombre_municipio, habitantes, id_mun, lat_m, lon_m, pro
 hab<10000
 ```
 
-#### Reformulación GAV
+### Reformulación GAV
 
 Para hacer la reformulación GAV basta con sustituir los átomos en la consulta global por sus respectivas definiciones en función de las fuentes, a partir de la formulación GAV de las fuentes vistas en apartados anteriores.
 
@@ -56,7 +56,7 @@ INE_MUNICIPIO(cmun, cpro, v8, v9), INE_PROVINCIA(cpro, prov, v10, ccaa),
 id_mun=cmun+cpro, hab<10000, pais=España
 ```
 
-#### Reformulación LAV
+### Reformulación LAV
 
 Para hacer la reformulación LAV debemos utilizar el algoritmo basado en buckets.
 
@@ -82,12 +82,13 @@ INE_PROVINCIA(cpro, prov, v10, ccaa), id_mun=cmun+cpro, hab<10000
 ```
 Q1'(id, nombre_estacion, nombre_municipio):- data_renfe_ESTACION(v1, id, nombre_estacion, 
 lat_e, lon_e, v2, v3, nom_mun, v4, v5), wikidata_MUNICIPIO(id_mun, nombre_municipio, hab, 
-coord), lat_m=latitud(coord), lon_m=longitud(coord), INE_MUNICIPIO(cmun, cpro, v8, v9),INE_PROVINCIA(cpro, prov, v10, ccaa), id_mun=cmun+cpro, hab<10000
+coord), lat_m=latitud(coord), lon_m=longitud(coord), INE_MUNICIPIO(cmun, cpro, v8, v9),
+INE_PROVINCIA(cpro, prov, v10, ccaa), id_mun=cmun+cpro, hab<10000
 ```
 
 Como ya hemos visto, la reformulación LAV y GAV coinciden aunque hayamos utilizado diferentes algoritmos para su construcción. Es por esto que para las siguientes dos consultas únicamente se dejará indicada la reformulación final.
 
-### Consulta 2
+## Consulta 2
 
 Esta consulta tiene un `OR` para poder trabajar con la tabla distancia. Es por ello que la consulta se define como:
 
@@ -107,7 +108,7 @@ Q2a(id):- Viaje(id, ruta, v1, v2), Ruta(ruta, origen, destino, v3),
 Distancia(destino, origen, dist), dist<30
 ```
 
-#### Reformulación GAV/LAV
+### Reformulación GAV/LAV
 
 La consulta en forma GAV queda extremadamente larga, puesto que para calcular distancias hay que cruzar datos con la vista auxiliar
 
@@ -115,7 +116,8 @@ La consulta en forma GAV queda extremadamente larga, puesto que para calcular di
 Q2a'(id):− Parada_aux(ruta, num_secuencia, nombre_parada), 
 nombre_origen=getMinSecuencia(num_secuencia), data_renfe_ESTACION(v1, estacion, nombre_origen, 
 v3, v4, v5, v6, v7, v8, pais), adif_SALIDAS(fecha, horario, v10, v11, estacion), 
-id=secuencia(), pais==España, Parada_aux(ruta, num_secuencia, nombre_parada), nombre_origen=getMinSecuencia(num_secuencia), nombre_destino=getMaxSecuencia(num_secuencia), 
+id=secuencia(), pais==España, Parada_aux(ruta, num_secuencia, nombre_parada), 
+nombre_origen=getMinSecuencia(num_secuencia), nombre_destino=getMaxSecuencia(num_secuencia), 
 data_renfe_ESTACION(v1, origen, nombre_origen, v12, v13, v14, v15, v16, v17, pais), 
 data_renfe_ESTACION(v36, destino, nombre_destino, v18, v19, v20, v21, v22, v23, pais), 
 pais==España, data_renfe_ESTACION(v24, origen, v25, latitud_1, longitud_1, v26, v27, 
@@ -148,6 +150,6 @@ distancia=dist(latitud_1, latitud_2, longitud_1, longitud_2),
 pais==España, destino < origen, distancia<30
 ```
 
-### Consulta 3
+## Consulta 3
 
 Si vemos la definición de la consulta 3, podemos ver que para poder obtener las estaciones con 0 viajes entre sí debemos hacer un `LEFT JOIN` sobre el esquema mediador, y no sabemos como poner dicha operación en forma conjuntiva. Por tanto, tampoco sabríamos escribir la consulta con la reformulación GAV o la reformulación LAV. 

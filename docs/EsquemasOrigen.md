@@ -1,8 +1,3 @@
----
-title: Esquemas Origen
-author: Víctor Elvira Fernández, Juan Horrillo Crespo, Sergio Velasco de Pedro
----
-
 # Esquemas Origen
 
 En este documento se muestran los esquemas de las fuentes de datos origen de nuestro sistema integrador Tren-ES. Las fuentes de datos son las siguientes
