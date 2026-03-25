@@ -1,3 +1,88 @@
+/*
+    Script de despliegue de la base de datos con esquema 
+    mediador.
+
+    Tren-ES
+
+    authors:
+        Sergio Velasco de Pedro
+        Víctor Elvira Fernández
+        Juan Horrillo Crespo
+*/
+
+-- 1. Eliminación de tablas existentes
+DROP TABLE IF EXISTS Viaje;
+DROP TABLE IF EXISTS Parada;
+DROP TABLE IF EXISTS Distancia;
+DROP TABLE IF EXISTS Ruta;
+DROP TABLE IF EXISTS Estacion;
+DROP TABLE IF EXISTS Municipio;
+
+-- 2. Creación de tablas
+
+-- Tabla Municipio
+CREATE TABLE Municipio (
+    id INT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    n_habitantes INT,
+    latitud DECIMAL(9,6),
+    longitud DECIMAL(9,6),
+    provincia VARCHAR(100),
+    ccaa VARCHAR(100)
+);
+
+-- Tabla Estacion
+CREATE TABLE Estacion (
+    id INT PRIMARY KEY,
+    nombre VARCHAR(150) NOT NULL,
+    municipio_id INT NOT NULL,
+    latitud DECIMAL(9,6),
+    longitud DECIMAL(9,6),
+    FOREIGN KEY (municipio_id) REFERENCES Municipio(id)
+);
+
+-- Tabla Ruta
+CREATE TABLE Ruta (
+    id INT PRIMARY KEY,
+    origen INT NOT NULL,
+    destino INT NOT NULL,
+    tipo VARCHAR(50),
+    FOREIGN KEY (origen) REFERENCES Estacion(id),
+    FOREIGN KEY (destino) REFERENCES Estacion(id)
+);
+
+-- Tabla Distancia
+CREATE TABLE Distancia (
+    estacion1 INT NOT NULL,
+    estacion2 INT NOT NULL,
+    distancia DECIMAL(8,2) NOT NULL,
+    PRIMARY KEY (estacion1, estacion2),
+    FOREIGN KEY (estacion1) REFERENCES Estacion(id),
+    FOREIGN KEY (estacion2) REFERENCES Estacion(id)
+);
+
+-- Tabla Parada
+CREATE TABLE Parada (
+    ruta INT NOT NULL,
+    estacion INT NOT NULL,
+    n_secuencia INT NOT NULL,
+    km_origen DECIMAL(8,2),
+    PRIMARY KEY (ruta, n_secuencia),
+    FOREIGN KEY (ruta) REFERENCES Ruta(id),
+    FOREIGN KEY (estacion) REFERENCES Estacion(id)
+);
+
+-- Tabla Viaje
+CREATE TABLE Viaje (
+    id INT PRIMARY KEY,
+    ruta INT NOT NULL,
+    fecha DATE NOT NULL,
+    horario TIME NOT NULL,
+    FOREIGN KEY (ruta) REFERENCES Ruta(id)
+);
+
+-- 3. Inserción de tuplas de ejemplo
+
 INSERT INTO Municipio (id, nombre, n_habitantes, latitud, longitud, provincia, ccaa) VALUES
 (1, 'Valladolid', 295639, 41.652300, -4.724500, 'Valladolid', 'Castilla y León'),
 (2, 'Segovia', 51378, 40.942900, -4.108800, 'Segovia', 'Castilla y León'),
@@ -207,3 +292,55 @@ INSERT INTO Distancia (estacion1, estacion2, distancia) VALUES
 (10, 8, 88.34),
 (10, 9, 176.38),
 (10, 10, 0.00);
+
+-- 4. Consultas
+
+-- Consulta 1: Estaciones en municipios con menos de 10000 habitantes
+
+SELECT
+	E.id,
+	E.nombre AS estacion,
+	M.nombre AS municipio
+FROM
+	Estacion AS E
+	INNER JOIN Municipio AS M ON E.municipio_id = M.id
+WHERE
+	M.n_habitantes < 10000;
+
+-- Consulta 2: Viajes programados que unen dos estaciones a menos de 30 km de distancia
+
+SELECT
+	V.id
+FROM
+	Viaje AS V
+	INNER JOIN Ruta AS R ON V.ruta = R.id
+	INNER JOIN Distancia AS D ON (
+		R.origen = D.estacion1
+		AND R.destino = D.estacion2
+	)
+	OR (
+		R.origen = D.estacion2
+		AND R.destino = D.estacion1
+	)
+WHERE
+	D.distancia < 30;
+
+-- Consulta 3: Municipios con menos de 5 viajes programados en su estación
+
+SELECT
+	M.id,
+	M.nombre,
+	COUNT(DISTINCT V.id) AS num_viajes_hoy
+FROM
+	Municipio AS M
+	LEFT JOIN Estacion AS E ON E.municipio_id = M.id
+	LEFT JOIN Parada AS P ON P.estacion = E.id
+	LEFT JOIN Viaje AS V ON V.ruta = P.ruta
+	AND V.fecha = CURRENT_DATE
+WHERE
+	M.n_habitantes BETWEEN 20000 AND 100000
+GROUP BY
+	M.id,
+	M.nombre
+HAVING
+	COUNT(DISTINCT V.id) < 5;

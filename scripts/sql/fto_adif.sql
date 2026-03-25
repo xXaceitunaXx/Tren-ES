@@ -1,0 +1,30 @@
+DROP TABLE IF EXISTS adif_SALIDAS;
+DROP TABLE IF EXISTS adif_LLEGADAS;
+
+CREATE TABLE adif_SALIDAS (
+    HORA TIME,
+    DESTINO VARCHAR(255),
+    TREN VARCHAR(100),
+    VIA INT,
+    PRIMARY KEY (HORA, TREN, DESTINO)
+);
+
+CREATE TABLE adif_LLEGADAS (
+    HORA TIME,
+    ORIGEN VARCHAR(255),
+    TREN VARCHAR(100),
+    VIA INT,
+    PRIMARY KEY (HORA, TREN, ORIGEN)
+);
+
+INSERT INTO adif_SALIDAS (HORA, DESTINO, TREN, VIA) VALUES 
+('08:30:00', 'Barcelona-Sants', 'AVE 03083', 4),
+('09:15:00', 'Valencia Joaquin Sorolla', 'AVE 05092', 6),
+('10:00:00', 'Sevilla Santa Justa', 'AVE 02100', 3),
+('12:45:00', 'Málaga María Zambrano', 'AVE 02124', 5);
+
+INSERT INTO adif_LLEGADAS (HORA, ORIGEN, TREN, VIA) VALUES 
+('08:15:00', 'Toledo', 'AVANT 08082', 7),
+('09:45:00', 'León', 'AVE 04098', 2),
+('11:30:00', 'Alicante', 'AVE 05112', 4),
+('14:20:00', 'Bilbao Abando', 'ALVIA 00414', 1);
