@@ -23,7 +23,7 @@ Municipio(id, nombre, v1, v2, v3, v4, v5), id == cmun + cpro
 
 ### INE_PROVINCIA
 
-Como no extraemos el , no podemos obtenerlo de los esquemas del mediador.
+Como no extraemos el código de CCAA, no podemos obtenerlo de los esquemas del mediador.
 
 `INE_PROVINCIA(cpro, nombre, codauto, ccaa)`$\subseteq$
 
