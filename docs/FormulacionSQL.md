@@ -10,7 +10,7 @@ SELECT E.id, E.nombre AS estacion, M.nombre AS municipio
 		ON E.municipio = M.id
 	WHERE M.n_habitantes < 10000;
 ```
-2. **Viajes entre dos estaciones a menos de 30 km entre si.**
+2. **Viajes entre dos estaciones a menos de 30 km entre sí.**
 ```sql
 SELECT V.id
 	FROM Viaje AS V

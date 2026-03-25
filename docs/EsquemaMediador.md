@@ -5,8 +5,9 @@
 Hemos elegido realizar la práctica sobre un supuesto propio, distinto de los propuestos. El objetivo consiste en construir un agregador que integre información acerca de la situación ferroviaria nacional. El sistema relacionará información sobre las estaciones, rutas y viajes en tren por el territorio español. El objetivo final será realizar las siguientes consultas:
 
 1. Estaciones de tren en poblaciones de menos de 10000 habitantes.
-2. Viajes entre dos estaciones a menos de 30 km entre si.
+2. Viajes entre dos estaciones a menos de 30 km entre sí.
 3. Poblaciones de entre 20000 y 100000 habitantes en las que haya menos de cinco viajes programados hoy.
+
 ## Esquema mediador
 
 Para modelar la información del sistema se ha definido un esquema mediador compuesto por seis relaciones principales: **Estacion**, **Municipio**, **Viaje**, **Parada**, **Ruta** y **Distancia**. Este esquema permite representar tanto la estructura geográfica del sistema ferroviario como la planificación de trayectos y viajes.

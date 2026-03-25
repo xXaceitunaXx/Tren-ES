@@ -35,7 +35,7 @@ longitud_m=longitud(coordenadas), INE_MUNICIPIO(cmun, cpro, v1, v2), id==cmun+cp
 INE_PROVINCIA(cpro, provincia, v3, CCAA)
 ```
 
-Incluimos dichas formulaciones en la consulta global, añadiendo la restriccion de habitantes, que da como resultado:
+Incluimos dichas formulaciones en la consulta global, añadiendo la restricción de habitantes, que da como resultado:
 
 ```
 Q1'(id, nombre_estacion, nombre_municipio):- data_renfe_ESTACION(v1, id, nombre_estacion, 
@@ -65,7 +65,7 @@ Para hacer la reformulación LAV debemos utilizar el algoritmo basado en buckets
    b. Los predicados (condiciones) de la vista y los de la consulta Q son mutuamente satisfacibles.
    c. Si en g aparece alguna variable cabecera de la consulta Q, entonces también debe aparecer en la cabecera de la vista.
 
-Siguiendo las normas de construcción de buckets, para el primer átomo, su bucket estará compuesto únimamente por *wikidata_ESTACION*, que se añade al bucket. El segundo bucket estará compuesto únicamente por la fuente *wikidata_MUNICIPIO*, que se añade al segundo bucket.
+Siguiendo las normas de construcción de buckets, para el primer átomo, su bucket estará compuesto únicamente por *wikidata_ESTACION*, que se añade al bucket. El segundo bucket estará compuesto únicamente por la fuente *wikidata_MUNICIPIO*, que se añade al segundo bucket.
 
 2. Reformulación como producto cartesiano: hacemos el producto cartesiano entre los buckets. Como solo hay una posibilidad por bucket solo podremos hacer una reformulación. Si nos fijamos, esta reformulación será la misma que la reformulación GAV:
 

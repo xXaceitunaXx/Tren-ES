@@ -2,7 +2,7 @@ A partir del esquema mediador y los esquemas de las fuentes de datos, podemos ob
 
 ### wikidata_MUNICIPIO
 
-Necesitamos concatenar las coordenadas de latitud y longitud extraidas en los esquemas GAV
+Necesitamos concatenar las coordenadas de latitud y longitud extraídas en los esquemas GAV
 
 `wikidata_MUNICIPIO(codigo, label, poblacion, coordenadas)`$\subseteq$
 
