@@ -1,8 +1,12 @@
+# Scraping
+
+## ADIF
+
 Desde la página web de consulta de horarios de estaciones en tiempo real de[ADIF](https://www.adif.es/viajeros/estaciones) hemos extraido mediante scrapping las tablas de las fuentes adif_SALIDAS y adif_LLEGADAS. No ha sido sencillo, pues es una aplicación web relativamente moderna y está bien preparada frente a interacción atomatizada, lo cuál ha resultado un reto. La implementación del scraping se puede ver en el archivo 'scraping_adif.py'. Este fichero actua a modo demo, por lo que no hay ningún tipo de interacción con el usuario. Simplemente accede a una página (la estación de Valladolid) y extrae las dos tablas. A continuación se procede a explicar la lógica y detalles técnicos:
 
 Una petición http básica no era suficiente para poder acceder al contenido real, pues la aplicación respondía con un html especial indicando que el acceso no estaba permitido:
 
-```{html}
+```html
 <HTML>
 <HEAD>
 <TITLE>Access Denied</TITLE>
@@ -10,10 +14,7 @@ Una petición http básica no era suficiente para poder acceder al contenido rea
 <BODY>
 <H1>Access Denied</H1>
 
-You don't have permission to access "http&#58;&#47;&#47;www&#46;adif&#46;es&#47;w&#47;10600&#45;valladolid&#45;c&#46;&#45;g&#46;" on this server.<P>
-Reference&#32;&#35;18&#46;e3d73b17&#46;1776287781&#46;10b628f9
-<P>https&#58;&#47;&#47;errors&#46;edgesuite&#46;net&#47;18&#46;e3d73b17&#46;1776287781&#46;10b628f9</P>
-</BODY>
+You don't have permission to access
 </HTML>
 ```
 

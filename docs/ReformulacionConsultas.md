@@ -113,7 +113,7 @@ Distancia(destino, origen, dist), dist<30
 La consulta en forma GAV queda extremadamente larga, puesto que para calcular distancias hay que cruzar datos con la vista auxiliar
 
 ```
-Q2a'(id):− Parada_aux(ruta, num_secuencia, nombre_parada), 
+Q2a'(id):- Parada_aux(ruta, num_secuencia, nombre_parada), 
 nombre_origen=getMinSecuencia(num_secuencia), data_renfe_ESTACION(v1, estacion, nombre_origen, 
 v3, v4, v5, v6, v7, v8, pais), adif_SALIDAS(fecha, horario, v10, v11, estacion), 
 id=secuencia(), pais==España, Parada_aux(ruta, num_secuencia, nombre_parada), 
@@ -129,7 +129,7 @@ origen < destino, pais==España, dist<30
 Tras simplificar, la consulta queda como:
 
 ```
-Q2a'(id):− Parada_aux(ruta, num_secuencia, nombre_parada), 
+Q2a'(id):- Parada_aux(ruta, num_secuencia, nombre_parada), 
 nombre_origen=getMinSecuencia(num_secuencia), nombre_destino=getMaxSecuencia(num_secuencia), 
 data_renfe_ESTACION(v1, origen, nombre_origen, latitud_1, longitud_1, v2, v3, v4, v5, v6), 
 data_renfe_ESTACION(v7, destino, nombre_destino, latitud_2, longitud_2, v8, v9, v10, v11, 
@@ -141,7 +141,7 @@ pais==España, origen < destino, distancia<30
 Q2b' cubrirá aquellos casos en los que destino < origen.
 
 ```
-Q2a'(id):− Parada_aux(ruta, num_secuencia, nombre_parada), 
+Q2a'(id):- Parada_aux(ruta, num_secuencia, nombre_parada), 
 nombre_origen=getMinSecuencia(num_secuencia), nombre_destino=getMaxSecuencia(num_secuencia), 
 data_renfe_ESTACION(v1, origen, nombre_origen, latitud_1, longitud_1, v2, v3, v4, v5, v6), 
 data_renfe_ESTACION(v7, destino, nombre_destino, latitud_2, longitud_2, v8, v9, v10, v11, 
