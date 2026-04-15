@@ -1,4 +1,5 @@
-# Tren-ES 
+# Tren-ES
+
 
 ## Supuesto elegido
 
@@ -62,7 +63,7 @@ Sus atributos son:
 
 ### Tabla Parada
 
-La tabla **Parada** almacena las estaciones por las que pasa una ruta, guardando el orden de llegada planificado en la ruta a la que pertenece.
+La tabla **Parada** almacena las estaciones por las que pasa una ruta, guardando el orden de llegada planificado en la ruta a la que pertenece. Esta tabla NO tiene en cuenta lla existencia de rutas circulares (que por otra parte creemos que no existen en recorridos de alta y media distancia). Consideramos que las rutas tienen un origen y un destino, con una serie de paradas intermedias.
 
 Sus atributos son:
 
@@ -97,60 +98,5 @@ Sus atributos son:
 La clave primaria de **Distancia** es compuesta, formada por **estacion1** y **estacion2**.
 
 ## Diagrama entidad-relación del mediador
-```mermaid
-erDiagram
-    MUNICIPIO {
-        string id PK
-        string nombre
-        int n_habitantes
-        float latitud
-        float longitud
-        string provincia
-        string CCAA
-    }
 
-    DISTANCIA {
-	string estacion1 PK,FK
-	string estacion2 PK,FK
-	float distancia
-    }
-
-    ESTACION {
-        string id PK
-        string municipio FK
-        string nombre
-        float latitud
-        float longitud
-    }
-
-    RUTA {
-        string id PK
-        string origen FK
-        string destino FK
-        string tipo
-    }
-
-    VIAJE {
-        string id PK
-        string ruta FK
-        date fecha
-        string horario
-    }
-
-    PARADA {
-        string ruta PK,FK
-        string estacion PK,FK
-        int n_secuencia
-        float km_origen
-    }
-
-    %% Relaciones
-    MUNICIPIO ||--o{ ESTACION : "tiene"
-    ESTACION ||--o{ RUTA : "es origen de"
-    ESTACION ||--o{ RUTA : "es destino de"
-    RUTA ||--o{ VIAJE : "planifica"
-    RUTA ||--|{ PARADA : "se compone de"
-    ESTACION ||--o{ PARADA : "pertenece a"
-    ESTACION ||--o{ DISTANCIA : "es origen (estacion1)"
-    ESTACION ||--o{ DISTANCIA : "es destino (estacion2)"
-```
+![Esquema del mediador](./img/mediador.jpeg)
