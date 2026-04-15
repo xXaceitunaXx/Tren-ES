@@ -47,3 +47,13 @@ GROUP BY
 HAVING
     COUNT(DISTINCT V.id) BETWEEN 1 AND 3;
 ```
+
+## Captura de una instancia
+
+En este apartado se muestran las capturas de instancias específicas del esquema mediador:
+
+![Instancia de la tabla RUTA](./img/instanciaRuta.jpeg)
+![Instancia de la tabla DISTANCIA](./img/instanciaDistancia.jpeg)
+![Instancia de las tablas ESTACION y MUNICIPIO](./img/instanciaEstacion.jpeg)
+![Instancia de la tabla PARADA](./img/instanciaParada.jpeg)
+![Instancia de la tabla VIAJE](./img/instanciaViaje.jpeg)

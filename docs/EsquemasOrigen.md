@@ -28,75 +28,7 @@ Información accesible desde las páginas de datos en tiempo real sobre las esta
 * adif_LLEGADAS(hora TIME, origen VARCHAR(255), tren VARCHAR(100), via INTEGER, estacion VARCHAR(255))
 La entidad de llegadas contiene la misma información que salidas, pero intercambiando cualquier dato por los correspondientes a las llegadas.
 
-```mermaid
-erDiagram
-    wikidata_MUNICIPIO {
-        INTEGER CODIGO "CÓDIGO"
-        VARCHAR LABEL
-        INTEGER POBLACION "POBLACIÓN"
-        POINT COORDENADAS
-    }
-
-    INE_MUNICIPIO {
-        INTEGER CMUN "CÓDIGO DE MUNICIPIO"
-        INTEGER CPRO "CÓDIGO DE PROVINCIA"
-        INTEGER DC "DÍGITO DE CONTROL"
-        VARCHAR NOMBRE
-    }
-```
-```mermaid
-erDiagram
-    INE_PROVINCIA {
-        INTEGER CPRO "CÓDIGO DE PROVINCIA"
-        VARCHAR NOMBRE "NOMBRE DE PROVINCIA"
-        INTEGER CODAUTO "CÓDIGO DE CCAA"
-        VARCHAR CCAA "NOMBRE COMUNIDAD AUTÓNOMA"
-    }
-
-    data_renfe_ESTACION {
-        INTEGER ID
-        INTEGER CODIGO "CÓDIGO"
-        VARCHAR DESCRIPCION "NOMBRE ESTACIÓN"
-        NUMERIC LATITUD
-        NUMERIC LONGITUD
-        VARCHAR DIRECCION "DIRECCIÓN"
-        VARCHAR C_P "C.P."
-        VARCHAR POBLACION
-        VARCHAR PROVINCIA
-        VARCHAR PAIS
-    }
-```
-```mermaid
-erDiagram
-    horarios_renfe_HORARIO {
-        VARCHAR RECORRIDO "TREN/RECORRIDO"
-        TIME SALIDA
-        TIME LLEGADA
-        TIME DURACION "HORAS/MINUTOS"
-    }
-
-    horarios_renfe_RUTA {
-        INTEGER CODIGO "CÓDIGO DE RUTA"
-        VARCHAR TIPO "TIPO DE TREN"
-        TEXT PARADAS "NOMBRE ESTACIONES"
-    }
-```
-```mermaid
-erDiagram
-
-    adif_SALIDAS {
-        TIME HORA
-        VARCHAR DESTINO
-        VARCHAR TREN
-        INTEGER VIA
-        VARCHAR ESTACION
-    }
-
-    adif_LLEGADAS {
-        TIME HORA
-        VARCHAR ORIGEN
-        VARCHAR TREN
-        INTEGER VIA
-        VARCHAR ESTACION
-    }
-```
+![Esquemas en origen 1](./img/origen1.jpeg)
+![Esquemas en origen 2](./img/origen2.jpeg)
+![Esquemas en origen 3](./img/origen3.jpeg)
+![Esquemas en origen 4](./img/origen4.jpeg)
