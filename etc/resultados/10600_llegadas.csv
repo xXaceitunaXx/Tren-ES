@@ -1,0 +1,26 @@
+hora_llegada,destino,via,tren
+"['22:20', '22:53']",Salamanca,5,RF - REGIONAL EXPRES18312
+"['22:35', '22:48']",Madrid Chamartín Clara Campoamor,1,RF - AVANT08219
+"['23:18', '23:24']",Madrid Príncipe Pío,4,RF - MD18007
+['06:25'],Palencia,4,RF - MD18066
+['07:05'],Salamanca,4,RF - MD18310
+['07:16'],Burgos Rosa Manzano,,RF - AVE05080
+['07:30'],Medina del Campo,5,RF - PROXIMIDAD17227
+['07:41'],Madrid Chamartín Clara Campoamor,3,RF - AVANT08069
+['07:43'],León,,RF - AVE05092
+['07:58'],Palencia,4,RF - MD18216
+['08:05'],Madrid Chamartín Clara Campoamor,,RF - AVE04061
+['08:05'],Madrid Chamartín Clara Campoamor,,RF - ALVIA04261
+['08:07'],Ávila,4,RF - REGIONAL EXPRES17201
+['08:24'],Madrid Chamartín Clara Campoamor,3,RF - ALVIA04087
+['08:24'],Madrid Chamartín Clara Campoamor,3,RF - ALVIA04187
+['08:32'],León,4,RF - MD18002
+['08:32'],Salamanca,4,RF - INTERCITY10630
+['08:39'],Gijón,,RF - AVE04060
+['08:55'],Donostia / San Sebastián,,RF - AVE04056
+['08:56'],Madrid Chamartín Clara Campoamor,,RF - AVANT08079
+['08:56'],Madrid Chamartín Clara Campoamor,4,RF - ALVIA04073
+['09:24'],Ponferrada,,RF - INTERCITY04088
+['09:33'],València Joaquín Sorolla,,RI - OUIGO06763
+['09:35'],Madrid Príncipe Pío,4,RF - MD18001
+['09:43'],Madrid Chamartín Clara Campoamor,,RF - INTERCITY04687

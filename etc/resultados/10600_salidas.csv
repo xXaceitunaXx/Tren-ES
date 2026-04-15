@@ -1,0 +1,26 @@
+hora_salida,destino,via,tren
+['22:40'],Medina del Campo,5,RF - REGIONAL EXPRES17226
+['23:1923:25'],Palencia,4,RF - MD18007
+['06:23'],Madrid Chamartín Clara Campoamor,,RF - AVANT08058
+['06:26'],Madrid Príncipe Pío,4,RF - MD18066
+['06:45'],Madrid Chamartín Clara Campoamor,,RF - AVANT08068
+['07:00'],Gijón,4A,RF - INTERURBANO12101
+['07:18'],València Joaquín Sorolla,,RF - AVE05080
+['07:27'],Madrid Chamartín Clara Campoamor,,RF - AVANT08078
+['07:35'],Salamanca La Alamedilla,4,RF - MD18300
+['07:45'],Alacant / Alicante Terminal,,RF - AVE05092
+['07:55'],Madrid Chamartín Clara Campoamor,,RF - AVANT08278
+['08:07'],Gijón,,RF - AVE04061
+['08:07'],Gijón,,RF - ALVIA04261
+['08:08'],Valladolid Universidad,4,RF - REGIONAL EXPRES17201
+['08:25'],Madrid Chamartín Clara Campoamor,,RF - AVANT08088
+['08:26'],Donostia / San Sebastián,3,RF - ALVIA04087
+['08:26'],Bilbao Intermodal Abando-Indalecio Prieto.,3,RF - ALVIA04187
+['08:33'],Madrid Príncipe Pío,4,RF - MD18002
+['08:34'],Zaragoza Delicias,4,RF - INTERCITY10630
+['08:41'],Madrid Chamartín Clara Campoamor,,RF - AVE04060
+['08:57'],Madrid Chamartín Clara Campoamor,,RF - AVE04056
+['09:02'],Santander,4,RF - ALVIA04073
+['09:26'],Madrid Chamartín Clara Campoamor,,RF - INTERCITY04088
+['09:40'],Salamanca La Alamedilla,5,RF - MD18304
+['09:45'],Logroño,,RF - INTERCITY04687
