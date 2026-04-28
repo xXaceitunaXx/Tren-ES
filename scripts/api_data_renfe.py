@@ -8,7 +8,7 @@ url_sql = 'https://data.renfe.com/api/3/action/datastore_search_sql'
 mi_sql = """
     SELECT "_id" as "ID", "CODIGO", "DESCRIPCION", "LATITUD", "LONGITUD", "DIRECION" as "DIRECCION", "CP", "POBLACION", "PROVINCIA", "PAIS"
     FROM "783e0626-6fa8-4ac7-a880-fa53144654ff" 
-    WHERE "CERCANIAS" = 'NO' AND "FEVE" = 'NO'
+    WHERE "FEVE" = 'NO'
 """
 
 # Es necesario que esté en un diccionario o salta error
