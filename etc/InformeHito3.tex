@@ -1,0 +1,1085 @@
+\section{Tren-ES}\label{tren-es}
+
+\subsection{Supuesto elegido}\label{supuesto-elegido}
+
+Hemos elegido realizar la práctica sobre un supuesto propio, distinto de
+los propuestos. El objetivo consiste en construir un agregador que
+integre información acerca de la situación ferroviaria nacional. El
+sistema relacionará información sobre las estaciones, rutas y viajes en
+tren por el territorio español. El objetivo final será realizar las
+siguientes consultas:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Estaciones de tren en poblaciones de menos de 10000 habitantes.
+\item
+  Viajes entre dos estaciones a menos de 30 km entre sí.
+\item
+  Poblaciones de entre 20000 y 100000 habitantes en las que haya menos
+  de cinco viajes programados hoy.
+\end{enumerate}
+
+\subsection{Esquema mediador}\label{esquema-mediador}
+
+Para modelar la información del sistema se ha definido un esquema
+mediador compuesto por seis relaciones principales: \textbf{Estacion},
+\textbf{Municipio}, \textbf{Viaje}, \textbf{Parada}, \textbf{Ruta} y
+\textbf{Distancia}. Este esquema permite representar tanto la estructura
+geográfica del sistema ferroviario como la planificación de trayectos y
+viajes.
+
+Las relaciones del esquema mediador son las siguientes:
+
+\begin{itemize}
+\tightlist
+\item
+  Estacion(\textbf{id}, nombre, \emph{municipio}, latitud, longitud)
+\item
+  Municipio(nombre, n\_habitantes, \textbf{id}, latitud, longitud,
+  provincia, CCAA)
+\item
+  Viaje(\textbf{id}, \emph{ruta}, fecha, horario)
+\item
+  Parada(\textbf{\emph{ruta}}, \textbf{\emph{estacion}}, n\_secuencia,
+  km\_origen)
+\item
+  Ruta(\textbf{id}, \emph{origen}, \emph{destino}, tipo)
+\item
+  Distancia(\textbf{\emph{estacion1}}, \textbf{\emph{estacion2}},
+  distancia)
+\end{itemize}
+
+A continuación se describe brevemente cada una de las tablas y los
+atributos que la componen.
+
+\subsubsection{Tabla Estacion}\label{tabla-estacion}
+
+La tabla \textbf{Estacion} guarda la información de las estaciones de
+tren registradas en el sistema. Cada estación está asociada a un
+municipio concreto.
+
+Sus atributos son:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{id}: clave primaria de la tabla. Identifica de forma única
+  cada estación.
+\item
+  \textbf{nombre}: nombre de la estación.
+\item
+  \textbf{municipio}: clave foránea que referencia al atributo
+  \textbf{id} de la tabla \textbf{Municipio}. Indica el municipio en el
+  que se encuentra situada la estación.
+\item
+  \textbf{latitud}: coordenada geográfica de latitud de la estación.
+\item
+  \textbf{longitud}: coordenada geográfica de longitud de la estación.
+\end{itemize}
+
+\subsubsection{Tabla Municipio}\label{tabla-municipio}
+
+La tabla \textbf{Municipio} almacena la información básica de cada
+municipio incluido en el sistema. En ella se recogen tanto datos
+identificativos como datos demográficos y geográficos.
+
+Sus atributos son:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{id}: clave primaria de la tabla. Identifica de manera única
+  cada municipio.
+\item
+  \textbf{nombre}: nombre del municipio.
+\item
+  \textbf{n\_habitantes}: número de habitantes del municipio.
+\item
+  \textbf{latitud}: coordenada geográfica de latitud del municipio.
+\item
+  \textbf{longitud}: coordenada geográfica de longitud del municipio.
+\item
+  \textbf{provincia}: provincia a la que pertenece el municipio.
+\item
+  \textbf{CCAA}: comunidad autónoma a la que pertenece el municipio.
+\end{itemize}
+
+\subsubsection{Tabla Viaje}\label{tabla-viaje}
+
+La tabla \textbf{Viaje} almacena los viajes concretos programados en el
+sistema. Mientras que una ruta define un recorrido general, un viaje
+representa una realización específica de dicha ruta en una fecha y hora
+determinadas.
+
+Sus atributos son:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{id}: clave primaria de la tabla. Identifica de forma única
+  cada viaje.
+\item
+  \textbf{ruta}: clave foránea que referencia al atributo \textbf{id} de
+  la tabla \textbf{Ruta}. Indica qué ruta realiza el viaje.
+\item
+  \textbf{fecha}: fecha en la que está programado el viaje.
+\item
+  \textbf{horario}: hora programada para la salida del viaje.
+\end{itemize}
+
+\subsubsection{Tabla Parada}\label{tabla-parada}
+
+La tabla \textbf{Parada} almacena las estaciones por las que pasa una
+ruta, guardando el orden de llegada planificado en la ruta a la que
+pertenece. Esta tabla NO tiene en cuenta lla existencia de rutas
+circulares (que por otra parte creemos que no existen en recorridos de
+alta y media distancia). Consideramos que las rutas tienen un origen y
+un destino, con una serie de paradas intermedias.
+
+Sus atributos son:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{ruta}: clave foránea que referencia al atributo \textbf{id} de
+  la tabla \textbf{Ruta}. Forma parte de la clave primaria compuesta de
+  la tabla.
+\item
+  \textbf{estacion}: clave foránea que referencia al atributo
+  \textbf{id} de la tabla \textbf{Estacion}. Forma parte de la clave
+  primaria compuesta de la tabla.
+\item
+  \textbf{n\_secuencia}: indica el orden de la parada dentro de la ruta.
+\item
+  \textbf{km\_origen}: distancia en kilómetros desde el origen de la
+  ruta hasta esa parada.
+\end{itemize}
+
+La clave primaria de \textbf{Parada} es compuesta, formada por los
+atributos \textbf{ruta} y \textbf{estacion}.
+
+\subsubsection{Tabla Ruta}\label{tabla-ruta}
+
+La tabla \textbf{Ruta} representa los recorridos ferroviarios entre
+estaciones. Cada ruta conecta una estación de origen con una estación de
+destino y permite clasificar el trayecto según su tipo.
+
+Sus atributos son:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{id}: clave primaria de la tabla. Identifica de manera única
+  cada ruta.
+\item
+  \textbf{origen}: clave foránea que referencia al atributo \textbf{id}
+  de la tabla \textbf{Estacion}. Indica la estación de origen de la
+  ruta.
+\item
+  \textbf{destino}: clave foránea que referencia al atributo \textbf{id}
+  de la tabla \textbf{Estacion}. Indica la estación de destino de la
+  ruta.
+\item
+  \textbf{tipo}: tipo de ruta o servicio ferroviario asociado.
+\end{itemize}
+
+\subsubsection{Tabla Distancia}\label{tabla-distancia}
+
+La tabla \textbf{Distancia} almacena la distancia entre pares de
+estaciones. Esta relación se utiliza para facilitar consultas sobre
+proximidad geográfica entre estaciones.
+
+Sus atributos son:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{estacion1}: clave foránea que referencia al atributo
+  \textbf{id} de la tabla \textbf{Estacion}. Forma parte de la clave
+  primaria compuesta.
+\item
+  \textbf{estacion2}: clave foránea que referencia al atributo
+  \textbf{id} de la tabla \textbf{Estacion}. Forma parte de la clave
+  primaria compuesta.
+\item
+  \textbf{distancia}: distancia entre ambas estaciones.
+\end{itemize}
+
+La clave primaria de \textbf{Distancia} es compuesta, formada por
+\textbf{estacion1} y \textbf{estacion2}.
+
+\subsection{Diagrama entidad-relación del
+mediador}\label{diagrama-entidad-relaciuxf3n-del-mediador}
+
+\begin{figure}
+\centering
+\includegraphics{./img/mediador.jpeg}
+\caption{Esquema del mediador}
+\end{figure}
+
+\subsection{Formulación SQL de las
+consultas}\label{formulaciuxf3n-sql-de-las-consultas}
+
+Podemos formular las consultas de la siguiente manera
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \textbf{Estaciones de tren en poblaciones de menos de 10000
+  habitantes.}
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{SELECT}\NormalTok{ E.}\KeywordTok{id}\NormalTok{, E.nombre }\KeywordTok{AS}\NormalTok{ estacion, M.nombre }\KeywordTok{AS}\NormalTok{ municipio}
+    \KeywordTok{FROM}\NormalTok{ Estacion }\KeywordTok{AS}\NormalTok{ E}
+    \KeywordTok{INNER} \KeywordTok{JOIN}\NormalTok{ Municipio }\KeywordTok{AS}\NormalTok{ M}
+        \KeywordTok{ON}\NormalTok{ E.municipio }\OperatorTok{=}\NormalTok{ M.}\KeywordTok{id}
+    \KeywordTok{WHERE}\NormalTok{ M.n\_habitantes }\OperatorTok{\textless{}} \DecValTok{10000}\NormalTok{;}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{1}
+\tightlist
+\item
+  \textbf{Viajes entre dos estaciones a menos de 30 km entre sí.}
+\end{enumerate}
+
+Para la solución a esta consulta es importante ver a qué nos referimos
+con \emph{distancia}: es la distancia euclídea directa entre las
+estaciones origen y destino a partir de su longitud y latitud. No tiene
+en cuenta el recorrido que haga, pudiendo ser este mayor que 30 km.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{SELECT}\NormalTok{ V.}\KeywordTok{id}
+    \KeywordTok{FROM}\NormalTok{ Viaje }\KeywordTok{AS}\NormalTok{ V}
+    \KeywordTok{INNER} \KeywordTok{JOIN}\NormalTok{ Ruta }\KeywordTok{AS}\NormalTok{ R}
+        \KeywordTok{ON}\NormalTok{ V.ruta }\OperatorTok{=}\NormalTok{ R.}\KeywordTok{id}
+    \KeywordTok{INNER} \KeywordTok{JOIN}\NormalTok{ Distancia }\KeywordTok{AS}\NormalTok{ D}
+        \KeywordTok{ON}\NormalTok{ (R.origen }\OperatorTok{=}\NormalTok{ D.estacion1 }\KeywordTok{AND}\NormalTok{ R.destino }\OperatorTok{=}\NormalTok{ D.estacion2) }\KeywordTok{OR}
+\NormalTok{        (R.origen }\OperatorTok{=}\NormalTok{ D.estacion2 }\KeywordTok{AND}\NormalTok{ R.destino }\OperatorTok{=}\NormalTok{ D.estacion1)}
+    \KeywordTok{WHERE}\NormalTok{ D.distancia }\OperatorTok{\textless{}} \DecValTok{30}\NormalTok{;}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{2}
+\tightlist
+\item
+  \textbf{Poblaciones de entre 20000 y 100000 habitantes en las que haya
+  entre uno y cinco viajes programados hoy.}
+\end{enumerate}
+
+Esta consulta en principio iba a ser **Poblaciones \ldots{} haya menos
+de cinco viajes programados hoy. El problema con esta consulta así
+formulada es que es necesario hacer un \emph{OUTER JOIN} para obtener
+aquellas poblaciones en las que haya 0 viajes programados, lo que daba
+problemas al poner las consultas en forma conjuntiva, por lo que hemos
+decidido realizar esta simplificación.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{SELECT}
+\NormalTok{    M.}\KeywordTok{id}\NormalTok{,}
+\NormalTok{    M.nombre,}
+    \FunctionTok{COUNT}\NormalTok{(}\KeywordTok{DISTINCT}\NormalTok{ V.}\KeywordTok{id}\NormalTok{) }\KeywordTok{AS}\NormalTok{ num\_viajes\_hoy}
+\KeywordTok{FROM}
+\NormalTok{    Municipio }\KeywordTok{AS}\NormalTok{ M}
+    \KeywordTok{INNER} \KeywordTok{JOIN}\NormalTok{ Estacion }\KeywordTok{AS}\NormalTok{ E }\KeywordTok{ON}\NormalTok{ E.municipio\_id }\OperatorTok{=}\NormalTok{ M.}\KeywordTok{id}
+    \KeywordTok{INNER} \KeywordTok{JOIN}\NormalTok{ Parada }\KeywordTok{AS}\NormalTok{ P }\KeywordTok{ON}\NormalTok{ P.estacion }\OperatorTok{=}\NormalTok{ E.}\KeywordTok{id}
+    \KeywordTok{INNER} \KeywordTok{JOIN}\NormalTok{ Viaje }\KeywordTok{AS}\NormalTok{ V }\KeywordTok{ON}\NormalTok{ V.ruta }\OperatorTok{=}\NormalTok{ P.ruta}
+\KeywordTok{WHERE}
+\NormalTok{    M.n\_habitantes }\KeywordTok{BETWEEN} \DecValTok{20000} \KeywordTok{AND} \DecValTok{100000}
+    \KeywordTok{AND}\NormalTok{ V.fecha }\OperatorTok{=} \FunctionTok{CURRENT\_DATE}
+\KeywordTok{GROUP} \KeywordTok{BY}
+\NormalTok{    M.}\KeywordTok{id}\NormalTok{,}
+\NormalTok{    M.nombre}
+\KeywordTok{HAVING}
+    \FunctionTok{COUNT}\NormalTok{(}\KeywordTok{DISTINCT}\NormalTok{ V.}\KeywordTok{id}\NormalTok{) }\KeywordTok{BETWEEN} \DecValTok{1} \KeywordTok{AND} \DecValTok{3}\NormalTok{;}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Captura de una instancia}\label{captura-de-una-instancia}
+
+En este apartado se muestran las capturas de instancias específicas del
+esquema mediador:
+
+\includegraphics{./img/instanciaRuta.jpeg}
+\includegraphics{./img/instanciaDistancia.jpeg}
+\includegraphics{./img/instanciaEstacion.jpeg}
+\includegraphics{./img/instanciaParada.jpeg}
+\includegraphics{./img/instanciaViaje.jpeg}
+
+\section{Esquemas Origen}\label{esquemas-origen}
+
+En este documento se muestran los esquemas de las fuentes de datos
+origen de nuestro sistema integrador Tren-ES. Las fuentes de datos son
+las siguientes:
+
+\begin{itemize}
+\tightlist
+\item
+  Wikidata. Para obtener información de los municipios, como su nombre,
+  código del INE, coordenadas geográficas o la población. Para extraer
+  estos datos utilizaremos un \emph{punto sparql}
+\item
+  INE. Para conectar los códigos de los municipios con las provincias y
+  comunidades autónomas. Para extraer estos datos utilizaremos la
+  \emph{API oficial}.
+\item
+  Renfe. Dos distintas:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Renfe Data. Obtenemos información a partir de la \emph{API de Renfe}
+    de todas las estaciones que existen en España.
+  \item
+    Renfe horarios. Un pequeño formulario desde el que se puede obtener
+    la información de todos los horarios de tramos (Estación Origen,
+    Estación Destino) disponibles en la web de renfe y las rutas
+    correspondientes. Para extraer estos datus utilizaremos \emph{web
+    scraping}.
+  \end{itemize}
+\item
+  ADIF. Información en tiempo real de las salidas y llegadas en cada
+  estación. Nos permite contrastar los horarios planificados con los
+  reales. Para extraer estos datus utilizaremos \emph{web scraping}.
+\end{itemize}
+
+\subsection{Forma conjuntiva de las tablas
+origen}\label{forma-conjuntiva-de-las-tablas-origen}
+
+\begin{itemize}
+\tightlist
+\item
+  wikidata\_MUNICIPIO(codigo INTEGER, label VARCHAR(255), poblacion
+  INTEGER, coordenadas POINT) Tabla de datos extraidos de Wikidata. La
+  tabla está formada por un campo \texttt{codigo} que contiene el
+  identificador INE del municipio, un campo \texttt{label} con el nombre
+  del municipio en texto legible, la columna \texttt{poblacion} que
+  almacena el número de habitantes de ese municipio y las
+  \texttt{coordenadas}, una tupla de tipo Point que almacena las
+  coordenadas geográficas de dicho municipio.
+\item
+  INE\_MUNICIPIO(cmun INTEGER, cpro INTEGER, dc INTEGER, nombre
+  VARCHAR(100)) Datos oficiales sobre municipios ofrecidos por el INE.
+  Formados por un código de municipio \texttt{cmun}, que identifica a un
+  municipio \emph{dentro} de una provincia, el código de la provincia a
+  la que pertenece, \texttt{cpro}, un dígito de control (que no nos
+  genera interés) \texttt{dc} y el nombre en texto legible,
+  \texttt{nombre}.
+\item
+  INE\_PROVINCIA(cpro INTEGER, nombre VARCHAR(100), codauto INTEGER,
+  ccaa VARCHAR(100)) Datos oficiales sobre provincias ofrecidos por el
+  INE. Es una tabla que cruza provincias con su respectiva comunidad
+  autónoma. Formada por la información de provincia, \texttt{cpro} y
+  \texttt{nombre}, código de la provincia y nombre en texto legible
+  respectivamente, e información sobre la Comunidad Autónoma a la que
+  pertenece, \texttt{codauto} y \texttt{ccaa}, código de la Comunidad
+  Autónoma y nombre en texto legible respectivamente.
+\item
+  data\_renfe\_ESTACION(id INTEGER, codigo INTEGER, descripcion
+  VARCHAR(255), latitud NUMERIC(9,6), longitud NUMERIC(9,6), direccion
+  VARCHAR(255), c\_p VARCHAR(5), poblacion VARCHAR(100), provincia
+  VARCHAR(100), pais VARCHAR(100)) Este esquema, se ofrece en la sección
+  de datos abiertos de Renfe. Contiene información sobre todas las
+  estaciones de trenes que hay en España. Se compone por, un \texttt{id}
+  de asignación secuencial, un código de estación \texttt{codigo}, el
+  nombre en texto legible guardado en \texttt{descripción}, las
+  coordenadas geográficas por separado en \texttt{latitud} y
+  \texttt{longitud}, una dirección guardada en la columna
+  \texttt{direccion} y el código postal asociado \texttt{c\_p} y
+  finalmente datos territoriales de la ubicación, \texttt{población},
+  \texttt{provincia} y \texttt{pais}.
+\item
+  horarios\_renfe\_HORARIO(recorrido VARCHAR(255), salida TIME, llegada
+  TIME, duracion INTERVAL) Datos extraídos de un formulario de la página
+  de Renfe. El horario son viajes que van desde una estación de origen
+  hasta una de destino. \texttt{recorrido} es la ruta que realiza ese
+  viaje, \texttt{salida} y \texttt{llegada} son las estaciones que une
+  dicho viaje (y que son paradas de la ruta). Duración es el tiempo en
+  horas y minutos que tarda en completarse el viaje.
+\item
+  horarios\_renfe\_RUTA(codigo INTEGER, tipo VARCHAR(20), paradas TEXT)
+  Se extraen del mismo formulario, contiene información sobre una ruta
+  en específico. Las rutas son conjuntos de estaciones que se recorren
+  en un orden específico. Una ruta tiene un \texttt{codigo} que la
+  identifica frente al resto, y un \texttt{tipo} de tren que la recorre
+  (MD, AV, AVLO, \ldots) y \texttt{paradas} representa la lista de
+  paradas. Sabemos que no es una representación normalizada, pero nos
+  parecía que añadía mucha complejidad a representar los orígenes, y por
+  motivos de simpleza lo hemos hecho así. En el esquema mediador se
+  trata y soluciona este problema.
+\item
+  adif\_SALIDAS(hora TIME, destino VARCHAR(255), tren VARCHAR(100), via
+  INTEGER, estacion VARCHAR(255)) Información accesible desde las
+  páginas de datos en tiempo real sobre las estaciones españolas.
+  Contiene información sobre las salidas en tiempo real. \texttt{hora}
+  es el cuándo sale el tren de la estación, el campo \texttt{destino}
+  contiene la estación destino de dicha salida, \texttt{tren} almacena
+  tanto la ruta de dicho viaje que sale como el tipo de tren que la
+  atiende, una columna \texttt{via} desde dónde es dicha salida y
+  \texttt{estacion} la estación de la que provienen los datos.\\
+\item
+  adif\_LLEGADAS(hora TIME, origen VARCHAR(255), tren VARCHAR(100), via
+  INTEGER, estacion VARCHAR(255)) La entidad de llegadas contiene la
+  misma información que salidas, pero intercambiando cualquier dato por
+  los correspondientes a las llegadas.
+\end{itemize}
+
+\includegraphics{./img/origen1.jpeg}
+\includegraphics{./img/origen2.jpeg}
+\includegraphics{./img/origen3.jpeg}
+\includegraphics{./img/origen4.jpeg}
+
+A partir del mediador y los esquemas de las fuentes de datos podemos
+acabar con los siguientes esquemas GAV:
+
+\subsubsection{Municipio}\label{municipio}
+
+Es necesario cruzar los datos de los datos de \emph{wikidata} y los del
+\emph{INE} para poder obtener de forma correcta los códigos de provincia
+y comunidad autónoma.
+
+\texttt{Municipio(id,\ nombre,\ n\_habitantes,\ latitud\_m,\ longitud\_m,\ provincia,\ CCAA)}
+\(\supseteq\)
+
+\begin{verbatim}
+wikidata_MUNICIPIO(id, nombre ,n_habitantes, coordenadas), latitud_m=latitud(coordenadas), 
+longitud_m=longitud(coordenadas), INE_MUNICIPIO(cmun, cpro, v1, v2), id==cmun+cpro, 
+INE_PROVINCIA(cpro, provincia, v3, CCAA)
+\end{verbatim}
+
+\subsubsection{Estacion}\label{estacion}
+
+Hay que tener en cuenta que solo debemos obtener estaciones de España.
+
+\texttt{Estacion(id,\ municipio,\ nombre,\ latitud\_e,\ longitud\_e)}
+\(\supseteq\)
+
+\begin{verbatim}
+data_renfe_ESTACION(v1, id, nombre, latitud_e, longitud_e, v2, v3, nombre_mun, v4, v5), 
+wikidata_MUNICIPIO(municipio, nombre_mun ,v6, pais), pais==España
+\end{verbatim}
+
+\subsubsection{Distancia}\label{distancia}
+
+En este caso solo guardamos las distancias entre las estaciones de forma
+unidireccional, ya que la distancia entre una estación y otra es la
+misma que entre la segunda y la primera, y así evitamos información
+repetida.
+
+\texttt{Distancia(estacion1,\ estacion2,\ distancia)} \(\supseteq\)
+
+\begin{verbatim}
+data_renfe_ESTACION(v1, estacion1, v2, latitud_1, longitud_1, v3, v4, v5, v6, pais), 
+data_renfe_ESTACION(v8, estacion2, v9, latitud_2, longitud_2, v10, v11, v12, v13, pais), 
+distancia=dist(latitud_1, latitud_2, longitud_1, longitud_2), estacion1 < estacion2, 
+pais==España
+\end{verbatim}
+
+\subsubsection{Ruta y Parada}\label{ruta-y-parada}
+
+En las fuentes de datos obtenemos desde \emph{horarios\_renfe\_RUTA} una
+lista de paradas. Para poder extraer cada parada por separado debemos
+normalizar esta lista, por lo que nos ayudamos de una vista auxiliar.
+Esta vista no se encuentra en los archivos SQL en este hito.
+
+\paragraph{Vista auxiliar: Parada\_aux}\label{vista-auxiliar-parada_aux}
+
+Esta vista auxiliar no se encuentra en el esquema mediador, utilizaremos
+una función para normalizar la lista y poder extraer las paradas:
+
+\texttt{Parada\_aux(codigo\_ruta,\ num\_secuencia,\ nombre\_parada)}\(\supseteq\)
+
+\begin{verbatim}
+horarios_renfe_RUTA(lista_paradas, codigo_ruta), 
+(num_secuencia, nombre_parada) =unlist(lista_paradas)
+\end{verbatim}
+
+A partir de esta vista auxiliar podemos definir correctamente parada:
+
+\texttt{Parada(ruta,\ estacion,\ num\_secuencia,\ km\_origen)}
+\(\supseteq\)
+
+\begin{verbatim}
+Parada_aux(ruta, num_secuencia, nombre_parada), 
+data_renfe_ESTACION(v1, estacion, nombre_parada, v3, v4, v5, v6, v7, v8, pais), pais==España
+\end{verbatim}
+
+Para definir la ruta volvemos a necesitar funciones externas. Una ruta
+se define por un identificador propio y una tupla origen y destino de
+estaciones de la ruta. Para esto debemos obtener los números de
+secuencia mínimo y máximo de cada entrada de \emph{Parada\_aux}.
+
+\texttt{Ruta(id,\ origen,\ destino,\ tipo)} \(\supseteq\)
+
+\begin{verbatim}
+Parada_aux(id, num_secuencia, nombre_parada), nombre_origen=getMinSecuencia(num_secuencia), 
+nombre_destino=getMaxSecuencia(num_secuencia), data_renfe_ESTACION(v1, origen, nombre_origen, 
+v3, v4, v5, v6, v7, v8, pais), data_renfe_ESTACION(v10, destino, nombre_destino, v11, v12, 
+v13, v14, v15, v16, pais), pais==España
+\end{verbatim}
+
+\subsubsection{Viaje}\label{viaje}
+
+El horario se refiere a la hora de llegada en la estación destino del
+viaje específico, recogido de la web de \emph{ADIF}.
+
+\texttt{Viaje(id,\ ruta,\ fecha,\ horario)} \(\supseteq\)
+
+\begin{verbatim}
+Parada_aux(ruta, num_secuencia, nombre_parada), nombre_origen=getMinSecuencia(num_secuencia), 
+data_renfe_ESTACION(v1, estacion, nombre_origen, v3, v4, v5, v6, v7, v8, pais), 
+adif_SALIDAS(fecha, horario, v10, v11, estacion), id=secuencia(), pais==España
+\end{verbatim}
+
+No se han considerado simplificaciones para ninguna tabla. Para la tabla
+Municipio no se puede simplificar ya que es necesario hacer el cruce de
+tablas con el INE para obtener correctamente el código de provincia y
+Comunidad Autónoma. Para el resto de tablas no vemos simplificación
+posible.
+
+A partir del esquema mediador y los esquemas de las fuentes de datos,
+podemos obtener los siguientes esquemas LAV:
+
+\subsubsection{wikidata\_MUNICIPIO}\label{wikidata_municipio}
+
+Necesitamos concatenar las coordenadas de latitud y longitud extraídas
+en los esquemas GAV
+
+\texttt{wikidata\_MUNICIPIO(codigo,\ label,\ poblacion,\ coordenadas)}\(\subseteq\)
+
+\begin{verbatim}
+Municipio(codigo, label, poblacion, latitud, longitud, v1, v2), 
+coordenadas = coords(latitud, longitud)
+\end{verbatim}
+
+\subsubsection{INE\_MUNICIPIO}\label{ine_municipio}
+
+Como no extraemos el dígito de control dc, no podemos obtenerlo de los
+esquemas del mediador.
+
+\texttt{INE\_MUNICIPIO(cmun,\ cpro,\ dc,\ nombre)}\(\subseteq\)
+
+\begin{verbatim}
+Municipio(id, nombre, v1, v2, v3, v4, v5), id == cmun + cpro
+\end{verbatim}
+
+\subsubsection{INE\_PROVINCIA}\label{ine_provincia}
+
+Como no extraemos el código de CCAA, no podemos obtenerlo de los
+esquemas del mediador.
+
+\texttt{INE\_PROVINCIA(cpro,\ nombre,\ codauto,\ ccaa)}\(\subseteq\)
+
+\begin{verbatim}
+Municipio(id, nombre, v1, v2, v3, v4, v5), id == cmun + cpro
+\end{verbatim}
+
+\subsubsection{data\_renfe\_ESTACION}\label{data_renfe_estacion}
+
+Como estación venía de un formulario con varios campos que no extraemos,
+no podemos reconstruir exactamente la fuente completa a partir de
+nuestros esquemas.
+
+\texttt{data\_renfe\_ESTACION(v1,\ id,\ descripcion,\ latitud,\ longitud,\ v2,\ c\_p,\ poblacion,\ provincia,\ pais)}\(\subseteq\)
+
+\begin{verbatim}
+Estacion(id, id_mun, descripcion, latitud, longitud), 
+Municipio(id_mun, poblacion, v3, v4, v5, provincia, v6)
+\end{verbatim}
+
+\subsubsection{horarios\_renfe\_RUTA}\label{horarios_renfe_ruta}
+
+Al contrario que en los esquemas GAV, debemos crear una lista a partir
+de nuestros esquemas.
+
+\texttt{horarios\_renfe\_RUTA(codigo,\ paradas)}\(\subseteq\)
+
+\begin{verbatim}
+Parada(codigo, estacion, n_secuencia, v4), paradas = list(estacion, n_secuencia)
+\end{verbatim}
+
+\subsubsection{adif\_SALIDAS}\label{adif_salidas}
+
+No podemos conseguir los campos tren y via desde nuestros esquemas, por
+lo que la tabla no se puede construir por completo.
+
+\texttt{adif\_SALIDAS(hora,\ destino,\ tren,\ via,\ estacion)}\(\subseteq\)
+
+\begin{verbatim}
+Viaje(id_viaje, ruta, fecha, hora), Ruta(ruta, origen, id_estacion_destino, tipo), 
+Estacion(id_estacion_destino, estacion, destino, v2, v3)
+\end{verbatim}
+
+Al igual que en los esquemas GAV, no se ha considerado ninguna
+simplificación.
+
+\section{Reformulación GAV y LAV de las
+Consultas}\label{reformulaciuxf3n-gav-y-lav-de-las-consultas}
+
+En esta sección vamos a hacer la reformulación GAV y LAV de las
+consultas. Para la reformulación GAV emplearemos la descomposición de
+consultas y para la reformulación LAV utilizaremos el algoritmo de los
+\emph{Buckets}.
+
+\subsection{Consulta 1}\label{consulta-1}
+
+\begin{itemize}
+\tightlist
+\item
+  Estaciones de tren en poblaciones de menos de 10000 habitantes.
+\end{itemize}
+
+La consulta se puede escribir sobre el esquema mediador como:
+
+\begin{verbatim}
+Q1(id, nombre_estacion, nombre_municipio):- Estacion(id, id_mun, nombre_estacion, 
+lat_e, lon_e), Municipio(nombre_municipio, habitantes, id_mun, lat_m, lon_m, prov, ccaa), 
+hab<10000
+\end{verbatim}
+
+\subsubsection{Reformulación GAV}\label{reformulaciuxf3n-gav}
+
+Para hacer la reformulación GAV basta con sustituir los átomos en la
+consulta global por sus respectivas definiciones en función de las
+fuentes, a partir de la formulación GAV de las fuentes vistas en
+apartados anteriores.
+
+Para el átomo \emph{Estacion}, sustituimos por su correspondiente
+formulación GAV:
+\texttt{Estacion(id,\ municipio,\ nombre,\ latitud\_e,\ longitud\_e)}
+\(\subseteq\)
+
+\begin{verbatim}
+data_renfe_ESTACION(v1, id, nombre, latitud_e, longitud_e, v2, v3, nombre_mun, v4, v5), 
+wikidata_MUNICIPIO(municipio, nombre_mun ,v6, pais), pais==España
+\end{verbatim}
+
+E igualmente con \emph{Municipio}, que queda:
+\texttt{Municipio(id,\ nombre,\ n\_habitantes,\ latitud\_m,\ longitud\_m,\ provincia,\ CCAA)}
+\(\subseteq\)
+
+\begin{verbatim}
+wikidata_MUNICIPIO(id, nombre ,n_habitantes, coordenadas), latitud_m=latitud(coordenadas), 
+longitud_m=longitud(coordenadas), INE_MUNICIPIO(cmun, cpro, v1, v2), id==cmun+cpro, 
+INE_PROVINCIA(cpro, provincia, v3, CCAA)
+\end{verbatim}
+
+Incluimos dichas formulaciones en la consulta global, añadiendo la
+restricción de habitantes, que da como resultado:
+
+\begin{verbatim}
+Q1'(id, nombre_estacion, nombre_municipio):- data_renfe_ESTACION(v1, id, nombre_estacion, 
+lat_e, lon_e, v2, v3, nom_mun, v4, v5), wikidata_MUNICIPIO(id_mun, nombre_municipio, v6, v7), 
+wikidata_MUNICIPIO(id_mun, nombre_municipio, hab, coord), lat_m=latitud(coord), 
+lon_m=longitud(coord), INE_MUNICIPIO(cmun, cpro, v8, v9), 
+INE_PROVINCIA(cpro, prov, v10, ccaa), 
+id_mun=cmun+cpro, hab<10000
+\end{verbatim}
+
+Por último, podemos ver que el átomo \emph{wikidata\_MUNICIPIO} se
+encuentra repetido, por lo que podríamos pensar en simplificar para
+eliminar redundancias. Podríamos hacer mappings de contención para ver
+equivalencias, pero es evidente que, dado que v6 y v7 no se utilizan,
+podemos eliminar el primer átomo, quedando la consulta final como:
+
+\begin{verbatim}
+Q1'(id, nombre_estacion, nombre_municipio):- data_renfe_ESTACION(v1, id, nombre_estacion, 
+lat_e, lon_e, v2, v3, nom_mun, v4, pais), wikidata_MUNICIPIO(id_mun, nombre_municipio, 
+hab, coord), lat_m=latitud(coord), lon_m=longitud(coord), 
+INE_MUNICIPIO(cmun, cpro, v8, v9), INE_PROVINCIA(cpro, prov, v10, ccaa), 
+id_mun=cmun+cpro, hab<10000, pais=España
+\end{verbatim}
+
+\subsubsection{Reformulación LAV}\label{reformulaciuxf3n-lav}
+
+Para hacer la reformulación LAV debemos utilizar el algoritmo basado en
+buckets.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Creamos y llenamos los buckets: como hay dos átomos en la consulta,
+  creamos dos buckets. Para que una vista forme parte de un bucket es
+  necesario que cumpla tres condiciones:
+
+  \begin{enumerate}
+  \def\labelenumii{\alph{enumii}.}
+  \tightlist
+  \item
+    Un átomo de la vista y el átomo g para el cual construimos el bucket
+    afectan a la misma relación.
+  \item
+    Los predicados (condiciones) de la vista y los de la consulta Q son
+    mutuamente satisfacibles.
+  \item
+    Si en g aparece alguna variable cabecera de la consulta Q, entonces
+    también debe aparecer en la cabecera de la vista.
+  \end{enumerate}
+\end{enumerate}
+
+Siguiendo las normas de construcción de buckets, para el primer átomo,
+su bucket estará compuesto únicamente por \emph{wikidata\_ESTACION}, que
+se añade al bucket. El segundo bucket estará compuesto únicamente por la
+fuente \emph{wikidata\_MUNICIPIO}, que se añade al segundo bucket.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{1}
+\tightlist
+\item
+  Reformulación como producto cartesiano: hacemos el producto cartesiano
+  entre los buckets. Como solo hay una posibilidad por bucket solo
+  podremos hacer una reformulación. Si nos fijamos, esta reformulación
+  será la misma que la reformulación GAV:
+\end{enumerate}
+
+\begin{verbatim}
+Q1''(id, nombre_estacion, nombre_municipio):- data_renfe_ESTACION(v1, id, nombre_estacion, 
+lat_e, lon_e, v2, v3, nom_mun, v4, v5), wikidata_MUNICIPIO(id_mun, nombre_municipio, v6, v7), 
+wikidata_MUNICIPIO(id_mun, nombre_municipio, hab, coord), lat_m=latitud(coord), 
+lon_m=longitud(coord), INE_MUNICIPIO(cmun, cpro, v8, v9), 
+INE_PROVINCIA(cpro, prov, v10, ccaa), id_mun=cmun+cpro, hab<10000
+\end{verbatim}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{2}
+\tightlist
+\item
+  Posible simplificación: como ya vimos anteriormente, es posible
+  simplificar la consulta, por lo que el resultado final es:
+\end{enumerate}
+
+\begin{verbatim}
+Q1'(id, nombre_estacion, nombre_municipio):- data_renfe_ESTACION(v1, id, nombre_estacion, 
+lat_e, lon_e, v2, v3, nom_mun, v4, v5), wikidata_MUNICIPIO(id_mun, nombre_municipio, hab, 
+coord), lat_m=latitud(coord), lon_m=longitud(coord), INE_MUNICIPIO(cmun, cpro, v8, v9),
+INE_PROVINCIA(cpro, prov, v10, ccaa), id_mun=cmun+cpro, hab<10000
+\end{verbatim}
+
+Como ya hemos visto, la reformulación LAV y GAV coinciden aunque hayamos
+utilizado diferentes algoritmos para su construcción. Es por esto que
+para las siguientes dos consultas únicamente se dejará indicada la
+reformulación final.
+
+\subsection{Consulta 2}\label{consulta-2}
+
+Esta consulta tiene un \texttt{OR} para poder trabajar con la tabla
+distancia. Es por ello que la consulta se define como:
+
+\[
+Q2=Q2_a\cup Q2_b
+\]
+
+Estas subconsultas se pueden escribir sobre el esquema mediador como:
+
+\begin{verbatim}
+Q2a(id):- Viaje(id, ruta, v1, v2), Ruta(ruta, origen, destino, v3), 
+Distancia(origen, destino, dist), dist<30
+\end{verbatim}
+
+\begin{verbatim}
+Q2a(id):- Viaje(id, ruta, v1, v2), Ruta(ruta, origen, destino, v3), 
+Distancia(destino, origen, dist), dist<30
+\end{verbatim}
+
+\subsubsection{Reformulación GAV/LAV}\label{reformulaciuxf3n-gavlav}
+
+La consulta en forma GAV queda extremadamente larga, puesto que para
+calcular distancias hay que cruzar datos con la vista auxiliar
+
+\begin{verbatim}
+Q2a'(id):- Parada_aux(ruta, num_secuencia, nombre_parada), 
+nombre_origen=getMinSecuencia(num_secuencia), data_renfe_ESTACION(v1, estacion, nombre_origen, 
+v3, v4, v5, v6, v7, v8, pais), adif_SALIDAS(fecha, horario, v10, v11, estacion), 
+id=secuencia(), pais==España, Parada_aux(ruta, num_secuencia, nombre_parada), 
+nombre_origen=getMinSecuencia(num_secuencia), nombre_destino=getMaxSecuencia(num_secuencia), 
+data_renfe_ESTACION(v1, origen, nombre_origen, v12, v13, v14, v15, v16, v17, pais), 
+data_renfe_ESTACION(v36, destino, nombre_destino, v18, v19, v20, v21, v22, v23, pais), 
+pais==España, data_renfe_ESTACION(v24, origen, v25, latitud_1, longitud_1, v26, v27, 
+v28, v29, pais), data_renfe_ESTACION(v30, destino, v31, latitud_2, longitud_2, v32, 
+v33, v34, v35, pais), distancia=dist(latitud_1, latitud_2, longitud_1, longitud_2), 
+origen < destino, pais==España, dist<30
+\end{verbatim}
+
+Tras simplificar, la consulta queda como:
+
+\begin{verbatim}
+Q2a'(id):- Parada_aux(ruta, num_secuencia, nombre_parada), 
+nombre_origen=getMinSecuencia(num_secuencia), nombre_destino=getMaxSecuencia(num_secuencia), 
+data_renfe_ESTACION(v1, origen, nombre_origen, latitud_1, longitud_1, v2, v3, v4, v5, v6), 
+data_renfe_ESTACION(v7, destino, nombre_destino, latitud_2, longitud_2, v8, v9, v10, v11, 
+v12), adif_SALIDAS(fecha, horario, v13, v14, origen), id=secuencia(), 
+distancia=dist(latitud_1, latitud_2, longitud_1, longitud_2), 
+pais==España, origen < destino, distancia<30
+\end{verbatim}
+
+Q2b' cubrirá aquellos casos en los que destino \textless{} origen.
+
+\begin{verbatim}
+Q2a'(id):- Parada_aux(ruta, num_secuencia, nombre_parada), 
+nombre_origen=getMinSecuencia(num_secuencia), nombre_destino=getMaxSecuencia(num_secuencia), 
+data_renfe_ESTACION(v1, origen, nombre_origen, latitud_1, longitud_1, v2, v3, v4, v5, v6), 
+data_renfe_ESTACION(v7, destino, nombre_destino, latitud_2, longitud_2, v8, v9, v10, v11, 
+v12), adif_SALIDAS(fecha, horario, v13, v14, origen), id=secuencia(), 
+distancia=dist(latitud_1, latitud_2, longitud_1, longitud_2), 
+pais==España, destino < origen, distancia<30
+\end{verbatim}
+
+\subsection{Consulta 3}\label{consulta-3}
+
+Si vemos la definición de la consulta 3, podemos ver que para poder
+obtener las estaciones con 0 viajes entre sí debemos hacer un
+\texttt{LEFT\ JOIN} sobre el esquema mediador, y no sabemos como poner
+dicha operación en forma conjuntiva. Por tanto, tampoco sabríamos
+escribir la consulta con la reformulación GAV o la reformulación LAV.
+
+\section{Scraping}\label{scraping}
+
+\subsection{ADIF}\label{adif}
+
+Desde la página web de consulta de horarios de estaciones en tiempo real
+de\href{https://www.adif.es/viajeros/estaciones}{ADIF} hemos extraido
+mediante scrapping las tablas de las fuentes adif\_SALIDAS y
+adif\_LLEGADAS. No ha sido sencillo, pues es una aplicación web
+relativamente moderna y está bien preparada frente a interacción
+atomatizada, lo cuál ha resultado un reto. La implementación del
+scraping se puede ver en el archivo `scraping\_adif.py'. Este fichero
+actua a modo demo, por lo que no hay ningún tipo de interacción con el
+usuario. Simplemente accede a una página (la estación de Valladolid) y
+extrae las dos tablas. A continuación se procede a explicar la lógica y
+detalles técnicos:
+
+Una petición http básica no era suficiente para poder acceder al
+contenido real, pues la aplicación respondía con un html especial
+indicando que el acceso no estaba permitido:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\DataTypeTok{\textless{}}\KeywordTok{HTML}\DataTypeTok{\textgreater{}}
+\DataTypeTok{\textless{}}\KeywordTok{HEAD}\DataTypeTok{\textgreater{}}
+\DataTypeTok{\textless{}}\KeywordTok{TITLE}\DataTypeTok{\textgreater{}}\NormalTok{Access Denied}\DataTypeTok{\textless{}/}\KeywordTok{TITLE}\DataTypeTok{\textgreater{}}
+\DataTypeTok{\textless{}/}\KeywordTok{HEAD}\DataTypeTok{\textgreater{}}
+\DataTypeTok{\textless{}}\KeywordTok{BODY}\DataTypeTok{\textgreater{}}
+\DataTypeTok{\textless{}}\KeywordTok{H1}\DataTypeTok{\textgreater{}}\NormalTok{Access Denied}\DataTypeTok{\textless{}/}\KeywordTok{H1}\DataTypeTok{\textgreater{}}
+
+\NormalTok{You don\textquotesingle{}t have permission to access}
+\DataTypeTok{\textless{}/}\KeywordTok{HTML}\DataTypeTok{\textgreater{}}
+\end{Highlighting}
+\end{Shaded}
+
+por lo que tuvimos que rechazar una primera aproximación usando los
+módulos \texttt{requests} con \texttt{BeautifullSoup}. Por tanto,
+probamos a usar el módulo \texttt{playwright}, desarrollado por
+Microsoft y mucho más potente.
+
+El módulo proporciona una interfáz muy sencilla para manejar versiones
+``headless'' de un navegador, con el objetivo de simular la navegación
+de un usuario real, pudiendo interactuar con elementos de la aplicación
+sin simplemente limitarse a la respuesta de una petición básica. Aún
+así, el sistema de detección de ``bots'' de la web seguía respondiendo
+con ficheros html de rechazo, pues parece ser que también era capaz de
+identificar que se trataba de un navegador ``headless''. Pudimos
+solucionar este problema creando un nuevo ``contexto'' de navegador que
+simulase una ventana gráfica, pero sin que de verdad esta existiese;
+gracias a esto hemos sido capaces de acceder a la información.
+
+El flujo del programa es muy simple:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Se crea una ``ventana'' virtual y una página sobre esta,
+  posteriormente se navega a la ruta (para el caso de valladolid,
+  \url{https://www.adif.es/w/10600-valladolid-c.-g.}) y se espera a que
+  todo el DOM esté en estado \emph{attached} para asegurar que los
+  elementos a los que queremos acceder están disponibles en el momento
+  de buscarlos.
+\item
+  Dependiendo de si se quieren estraer las tablas de llegadas o salidas,
+  hay que pulsar un botón de ``salidas'' o no (la opción de ``llegadas''
+  parece que viene seleccionada por defecto). Este es el único paso
+  diferente, a partir de aquí el programa es igual para ambos salvo
+  alguna pequeña variante de notación. Para acceder a la tabla hay que
+  filtrar por el identificador
+  \texttt{\#horas-trenes-estacion-(salidas\textbar{}llegadas)}
+  dependiendo de cual sea la fuente que se quiera extraer.
+\end{enumerate}
+
+\begin{figure}
+\centering
+\includegraphics{./img/img1_scrapping_ADIF.png}
+\caption{Captura de pantalla de la página de ADIF}
+\end{figure}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{2}
+\tightlist
+\item
+  La extracción de información es la misma, pues usa los mismos
+  identificadores para las columnas, incluso la estación de origen o
+  destino también tiene el mismo identificador \texttt{col-destino}
+  independientemente de si se habla de salidas o llegadas. Al ser una
+  tabla, extraer los datos es tan sencillo como iterar sobre todos los
+  objetos de tipo \texttt{tr} y acceder a cada elemento \texttt{td} por
+  columna. Una cosa importante y que tuvimos que solucionar fue que hay
+  dos tipos de ``filas'', las que contienen la información que nos
+  interesa y las amarillas, que proporcionan información sobre problemas
+  en la infrastructura, que no tienen el mismo formato y por tanto
+  pueden producir errores si no se trata bien.
+\item
+  Finalmente, se ``serializan'' los datos extraidos en un csv usando la
+  función de la librería estandar \texttt{csv.DictWritter}.
+\end{enumerate}
+
+\subsection{RENFE}\label{renfe}
+
+Hemos utilizado scraping sobre la web de
+\href{https://www.renfe.com/es/es/viajar/informacion-util/horarios}{renfe
+horarios}. Para conseguir esta información hemos tenido que rellenar un
+formulario utilizando \emph{playwright} y \emph{BeautifulSoup} en Python
+para acceder, ya que con la librería \emph{requests} aparecían problemas
+para realizar el scraping.
+
+El scraping realizado se puede ver en el archivo
+\emph{scraping\_renfe\_horarios.py}, y el flujo del programa es el
+siguiente:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Se introduce al programa la información relativa al cuestionario con
+  el siguiente formato:
+  {[}cod\_estacion\_origen{]}-{[}cod\_estacion\_destino{]}-{[}dia{]}-{[}mes{]}-{[}año{]},
+  de tal forma que para obtener los recorridos entre Valladolid Campo
+  Grande (estación número 10600) y Palencia (estación número 14100) para
+  el día 20 de abril de 2026 podríamos ejecutar el programa como:
+\end{enumerate}
+
+\texttt{\{bash\}\ \$\ echo\ "10600-14100-20-04-2026"\ \textbar{}\ python3\ scraping\_renfe\_horarios.py}
+
+Como se puede ver, el programa solo hace scraping sobre dos estaciones
+para un día concreto. El motivo de esto es que todavía no heos obtenido
+el listado de todas las estaciones para poder hacer el scraping de todos
+los viajes, aunque el programa está preparado para soportar varias
+llamadas seguidas.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{1}
+\item
+  Se accede a la web, accediendo al \emph{iframe} que contiene el
+  formulario. Si no se accede a este iframe no se pueden obtener los
+  elementos html del formulario. Cuando se accede, se rellenan los datos
+  acorde a la entrada del programa y se hace click en el botón
+  \textbf{BUSCAR}.
+\item
+  El \emph{iframe} cambia y muestra una tabla como la de la imagen de
+  debajo. Accedemos a cada linea de la tabla y obtenemos el primer
+  valor, que redirige a otra página web mediante una función javaScript
+  y un hiperenlace.
+\end{enumerate}
+
+\begin{figure}
+\centering
+\includegraphics{./img/img1_scraping_RENFE.png}
+\caption{Tabla de horarios RENFE}
+\end{figure}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{3}
+\tightlist
+\item
+  Formateamos el hiperenlace para hacerlo coincidir con el correcto.
+  Esto equivale a eliminar saltos de línea y sustituir espacios en
+  blanco por \emph{\%20}, de tal forma que la url:
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{horarios.renfe.com/HIRRenfeWeb/recorrido.do?O=10600}\ErrorTok{\&}\NormalTok{D=14100}\ErrorTok{\&}\NormalTok{F=2026{-}04{-}20}\ErrorTok{\&}\NormalTok{T=04073}\ErrorTok{\&}\NormalTok{G=1}\ErrorTok{\&}\NormalTok{TT=ALVIA\%20\%20\%20\%20\%20\%20\%20\%20\%20\%20\%20\%20\%20\%20 }\ErrorTok{\&}\NormalTok{ID=s}\ErrorTok{\&}\NormalTok{FDS=2026{-}04{-}20}\ErrorTok{\&}\NormalTok{DT=33 min.}
+\end{Highlighting}
+\end{Shaded}
+
+Equivale a la imagen de debajo.
+\includegraphics{./img/img2_scraping_RENFE.png}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{4}
+\item
+  Accedemos a estas url (una por ruta) y obtenemos el listado de paradas
+\item
+  Accedemos a dos archivos csv, correspondientes a los Esquemas en
+  Origen de \emph{horarios\_renfe\_RUTA} y
+  \emph{horarios\_renfe\_HORARIO}, y rellenamos los datos. Accedemos a
+  estos archivos en modo append: si no existen se crean y si existen se
+  añade la nueva información al final (así podemos crear muchas llamadas
+  al programa para diferentes rutas).
+\end{enumerate}
+
+Por último, se ha añadido la opción \emph{--verbose} para obtener logs
+del programa.
+
+\section{SPARQL}\label{sparql}
+
+\subsection{WikiData}\label{wikidata}
+
+Los datos de los municipios de España los vamos a coger de
+\includegraphics{https://www.wikidata.org/?uselang=es}, mediante un
+script de \emph{Python} que utilice el servicio de consultas del propio
+WikiData.
+
+En este caso, la consulta ha sido directa y sencilla, necesitando
+únicamente el nombre del municipio, la población que tiene y sus
+coordenadas, en formato POINT. Únicamente hay que tener en cuenta que
+WikiData puede cancelar la consulta si no se especifica un User-Agent
+(debido a su política de Robots).
+
+\begin{longtable}[]{@{}ll@{}}
+\toprule\noalign{}
+Columna & Tipo \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+CODIGO & text \\
+LABEL & text \\
+POOBLACION & numeric \\
+COORDENADAS & Point \\
+\end{longtable}
+
+Para lograrlo, hemos hecho la siguiente consulta:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{SELECT}\NormalTok{ ?codigo ?}\KeywordTok{label}\NormalTok{ ?poblacion ?coordenadas }\KeywordTok{WHERE}\NormalTok{ \{}
+\NormalTok{  ?municipio (wdt}\CharTok{:P31}\OperatorTok{/}\NormalTok{(wdt}\CharTok{:P279}\OperatorTok{*}\NormalTok{)) wd}\CharTok{:Q2074737}\NormalTok{;}
+\NormalTok{    wdt}\CharTok{:P772}\NormalTok{ ?codigo;}
+\NormalTok{    wdt}\CharTok{:P1082}\NormalTok{ ?poblacion;}
+\NormalTok{    wdt}\CharTok{:P625}\NormalTok{ ?coordenadas.}
+
+\NormalTok{  SERVICE wikibase}\CharTok{:label}\NormalTok{ \{}
+\NormalTok{    bd}\CharTok{:serviceParam}\NormalTok{ wikibase}\CharTok{:language} \OtherTok{"es"}\NormalTok{.}
+\NormalTok{    ?municipio rdfs}\CharTok{:label}\NormalTok{ ?}\KeywordTok{label}\NormalTok{.}
+\NormalTok{  \}}
+\NormalTok{\}}
+\KeywordTok{ORDER} \KeywordTok{BY}\NormalTok{ ?codigo}
+\end{Highlighting}
+\end{Shaded}

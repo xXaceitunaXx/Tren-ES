@@ -18,11 +18,12 @@ pandoc \
     "$BASE_DIR/docs/ReformulacionConsultas.md" \
     "$BASE_DIR/docs/ScrapingADIF.md" \
     "$BASE_DIR/docs/ScrapingRENFE.md" \
-        -o "$BASE_DIR/etc/InformeHito2.pdf" \
+    "$BASE_DIR/docs/SPARQLWikidata.md" \
+        -o "$BASE_DIR/etc/InformeHito3.pdf" \
         --toc \
         --number-sections \
         -V colorlinks=true \
         -V urlcolor=blue \
         -V geometry:margin=2.5cm
 
-echo "¡Hecho! El archivo se ha generado en $BASE_DIR/InformeHito2.pdf"
+echo "¡Hecho! El archivo se ha generado en $BASE_DIR/InformeHito3.pdf"
