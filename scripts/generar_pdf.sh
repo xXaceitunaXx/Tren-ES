@@ -9,7 +9,7 @@ BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 echo "Generando PDF en $BASE_DIR..."
 
 pandoc \
-    "$BASE_DIR/etc/InformeCompletoHito2.md" \
+    "$BASE_DIR/etc/InformeCompletoHito3.md" \
     "$BASE_DIR/docs/EsquemaMediador.md" \
     "$BASE_DIR/docs/FormulacionSQL.md" \
     "$BASE_DIR/docs/EsquemasOrigen.md" \
