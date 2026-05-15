@@ -84,7 +84,7 @@ def buscar_horarios_trenes(entrada, verbose = False):
                         print(f"[LOG] URL busqueda: {url_completa}")
                         
                     # Para cada ruta creamos una "entrada de tabla"
-                    pagina_linea = browser.new_page()
+                    pagina_linea = page
                     pagina_linea.goto(url_completa)
                     resultados_linea = pagina_linea.content()
                     
@@ -110,7 +110,6 @@ def buscar_horarios_trenes(entrada, verbose = False):
                                 if horaLlegada:
                                     ultima_llegada = horaLlegada
                     
-                    pagina_linea.close()
                     
                     if lista_paradas and len(info_tren) >= 2:
                         paradas_string = " | ".join(lista_paradas)
