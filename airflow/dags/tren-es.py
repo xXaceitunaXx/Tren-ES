@@ -1,205 +1,264 @@
-from typing import Any
-
 from airflow.sdk import dag, task
-from airflow.providers.standard.operators.empty import EmptyOperator
+from airflow.sensors.external_task import ExternalTaskSensor
 from pendulum import datetime
 
-from bs4 import BeautifulSoup
-from playwright.sync_api import sync_playwright
-
+import requests
 import csv
 
 
-BASE_URL_ADIF = "https://www.adif.es/"
+INE_REQUEST_URL = "https://servicios.ine.es/wstempus/js/ES/VALORES_VARIABLE"
+WIKIDATA_URL = "https://query.wikidata.org/sparql"
+RENFE_SQL_URL = 'https://data.renfe.com/api/3/action/datastore_search_sql'
+
+
+def to_csv(path, data):
+    keys = data[0].keys()
+    with open(path, "w", encoding="utf-8") as fichero:
+        writer = csv.DictWriter(fichero, keys)
+        writer.writeheader()
+        writer.writerows(data)
+
+@dag(
+    dag_id="Municipio-WIKIDATA",
+    tags=["pipeline", "Wikidata", "Municipios", "Tren-ES", "Población", "Geografía"],
+    start_date=datetime(2026, 1, 1),
+    schedule="@monthly"
+)
+def extraccion_municipio():
+
+    query = """
+    SELECT ?codigo ?label ?poblacion ?coordenadas WHERE {
+        ?municipio (wdt:P31/(wdt:P279*)) wd:Q2074737;
+            wdt:P772 ?codigo;
+            wdt:P1082 ?poblacion;
+            wdt:P625 ?coordenadas.
+
+        SERVICE wikibase:label {
+            bd:serviceParam wikibase:language "es".
+            ?municipio rdfs:label ?label.
+        }
+    }
+    ORDER BY ?codigo
+    """
+
+    @task(task_id="Extracción-WIKIDATA")
+    def extract():
+        headers = {
+            "Accept": "application/sparql-results+json",
+            "User-Agent": "Tren-ES/0.1",
+        }
+
+        print(f"Request {WIKIDATA_URL}:\n{query}")
+
+        response = requests.get(
+            WIKIDATA_URL,
+            params={"query": query, "format": "json"},
+            headers=headers,
+            timeout=60,
+        )
+        
+        print(f"Query response recived in {response.elapsed}" if response else "Query error")
+
+        return response.json()
+
+
+    @task(task_id="Transformación-WIKIDATA")
+    def transform(data):
+        rows = [
+            {
+                "codigo": item["codigo"]["value"],
+                "label": item["label"]["value"],
+                "poblacion": int(float(item["poblacion"]["value"])),
+                "coordenadas": item["coordenadas"]["value"],
+            }
+            for item in data["results"]["bindings"]
+        ]
+        
+        print("Data object generated")
+        
+        return rows
+
+
+    @task(task_id="Carga-WIKIDATA")
+    def load(data):
+        path = "resultados/municipios_WIKIDATA.csv"
+        print(f"Storing data in {path}")
+        to_csv(path, data)
+
+
+    raw_data = extract()
+    transformed_data = transform(raw_data)
+    load(transformed_data)
 
 
 @dag(
-    dag_id="ADIF_salidas",
-    description="DAG para extracción y almacenamiento de horarios de salidas desde ADIF.",
-    start_date=datetime(2026, 4, 14),
-    schedule=None,
-    params={
-        "codigo_estacion": "10600-valladolid-c.-g.",
-    },
-    tags=["tren", "es", "ADIF", "salidas"],
+    dag_id="Municipio-INE",
+    tags=["pipeline", "INE", "Municipios", "Tren-ES", "Códigos", "CCAA"],
+    start_date=datetime(2026, 1, 1),
+    schedule="@yearly"
 )
-def salidas() -> None:
-    @task(task_id="resolver_codigo_estacion")
-    def resolver_codigo_estacion(**context) -> str:
-        dag_run = context.get("dag_run")
-        dag_run_conf = getattr(dag_run, "conf", {}) or {}
-        codigo = (
-            dag_run_conf.get("codigo_estacion") or context["params"]["codigo_estacion"]
-        )
-        print(codigo)
-        return str(codigo)
+def extraccion_INE_municipio():
 
-    @task(task_id="adif_extraer_salidas")
-    def salidas_adif(codigo_estacion: Any) -> str:
-        with sync_playwright() as p:
-            browser = p.chromium.launch(
-                headless=True,
-                channel="chromium",
-            )
-            context = browser.new_context(
-                viewport={"width": 1920, "height": 1080},
-                user_agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
-                locale="es-ES",
-            )
+    INE_MUNICIPIOS = "19"
 
-            page = context.new_page()
-            page.goto(
-                f"https://www.adif.es/w/{codigo_estacion}#tab-salidas",
-                wait_until="domcontentloaded",
-            )
+    @task(task_id="Extracción-Municipio-INE")
+    def extract():
+        print(f"Request {INE_REQUEST_URL}/{INE_MUNICIPIOS}")
+        municipios_response = requests.get(f"{INE_REQUEST_URL}/{INE_MUNICIPIOS}")
+        print(f"Query response recived in {municipios_response.elapsed}" if municipios_response else "Query error")
+        municipios_json = municipios_response.json()
 
-            page.locator('a[href="#tab-salidas"]').click()
+        return municipios_json
 
-            filas_salidas = page.locator("#tab-salidas tbody tr")
-            filas_salidas.first.wait_for(state="attached", timeout=20000)
-            salidas_html = page.locator("#horas-trenes-estacion-salidas").inner_html()
 
-            return salidas_html
-
-    @task(task_id="extraer_tabla")
-    def extraer_tabla(html: str) -> list[dict]:
-        tabla = BeautifulSoup(html, "html.parser")
-        filas = tabla.find_all("tr")
-
-        lista = [
+    @task(task_id="Transformación-Municipio-INE")
+    def transform(data):
+        municipios = [
             {
-                "hora_llegada": fila.find("td", {"class": "col-hora"})
-                .text.strip()
-                .split(),
-                "destino": fila.find("td", {"class": "col-destino"}).text.strip(),
-                "via": fila.find("td", {"class": "col-via"}).text.strip(),
-                "tren": fila.find("td", {"class": "col-tren"}).text.strip(),
+                "CMUN": m["Codigo"][2:5],
+                "CPRO": m["Codigo"][0:2],
+                "NOMBRE": m["Nombre"]
             }
-            for fila in filas
-            if fila.find("td", {"class": "col-hora"}) is not None
+            for m in data
         ]
+        
+        print("Data object generated")
+        
+        return municipios
 
-        return lista
 
-    @task(task_id="guardar_csv")
-    def guardar(lista: list[dict], codigo_estacion: str) -> None:
-        print(lista)
+    @task(task_id="Carga-Municipio-INE")
+    def load(data):
+        path = "resultados/municipios_INE.csv"
+        print(f"Guardando resultados en {path}")
+        to_csv(path, data)
 
-        with open(
-            f"./{codigo_estacion.split('-')[0]}_salidas.csv", "w", encoding="utf-8"
-        ) as f:
-            writer = csv.DictWriter(f, fieldnames=lista[0].keys())
-            writer.writeheader()
-            writer.writerows(lista)
 
-            print(f"CSV guardado en: {f.name}")
-
-    codigo_estacion = resolver_codigo_estacion()
-    salidas_html = salidas_adif(codigo_estacion)
-    tabla = extraer_tabla(salidas_html)
-    guardar_datos = guardar(tabla, codigo_estacion)
-
-    (
-        EmptyOperator(task_id="inicio")
-        >> codigo_estacion
-        >> salidas_html
-        >> tabla
-        >> guardar_datos
-        >> EmptyOperator(task_id="fin")
-    )
+    raw_data = extract()
+    transformed_data = transform(raw_data)
+    load(transformed_data)
 
 
 @dag(
-    dag_id="ADIF_llegadas",
-    description="DAG para extracción y almacenamiento de horarios de llegadas desde ADIF.",
-    start_date=datetime(2026, 4, 14),
-    schedule=None,
-    params={
-        "codigo_estacion": "10600-valladolid-c.-g.",
-    },
-    tags=["tren", "es", "ADIF", "llegadas"],
+    dag_id="Provincia-INE",
+    tags=["pipeline", "INE", "Provincias", "Tren-ES", "Códigos", "CCAA"],
+    start_date=datetime(2026, 1, 1),
+    schedule="@yearly"
 )
-def llegadas() -> None:
-    @task(task_id="resolver_codigo_estacion")
-    def resolver_codigo_estacion(**context) -> str:
-        dag_run = context.get("dag_run")
-        dag_run_conf = getattr(dag_run, "conf", {}) or {}
-        codigo = (
-            dag_run_conf.get("codigo_estacion") or context["params"]["codigo_estacion"]
-        )
-        print(codigo)
-        return str(codigo)
+def extraccion_INE_provincias():
+    INE_PROVINCIAS = "115"
+    
+    @task(task_id="Extracción-Provincia-INE")
+    def extract():
+        print(f"Request {INE_REQUEST_URL}/{INE_PROVINCIAS}?det=2")
+        provincias_response = requests.get(f"{INE_REQUEST_URL}/{INE_PROVINCIAS}?det=2")
+        print(f"Query response recived in {provincias_response.elapsed}" if provincias_response else "Query error")
+        provincias_json = provincias_response.json()
+        
+        return provincias_json
 
-    @task(task_id="adif_extraer_llegadas")
-    def llegadas_adif(codigo_estacion: Any) -> str:
-        with sync_playwright() as p:
-            browser = p.chromium.launch(
-                headless=True,
-                channel="chromium",
-            )
-            context = browser.new_context(
-                viewport={"width": 1920, "height": 1080},
-                user_agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
-                locale="es-ES",
-            )
 
-            page = context.new_page()
-            page.goto(
-                f"https://www.adif.es/w/{codigo_estacion}",
-                wait_until="domcontentloaded",
-            )
-
-            llegadas_locator = page.locator("#horas-trenes-estacion-llegadas")
-            llegadas_locator.wait_for(state="attached")
-            llegadas_html = llegadas_locator.inner_html()
-
-            return llegadas_html
-
-    @task(task_id="extraer_tabla")
-    def extraer_tabla(html: str) -> list[dict]:
-        tabla = BeautifulSoup(html, "html.parser")
-        filas = tabla.find_all("tr")
-        lista = [
+    @task(task_id="Transformación-Provincia-INE")
+    def transform(data):
+        provincias = [
             {
-                "hora_llegada": fila.find("td", {"class": "col-hora"})
-                .text.strip()
-                .split(),
-                "origen": fila.find("td", {"class": "col-destino"}).text.strip(),
-                "via": fila.find("td", {"class": "col-via"}).text.strip(),
-                "tren": fila.find("td", {"class": "col-tren"}).text.strip(),
+                "CPRO": p["Codigo"], 
+                "NOMBRE": p["Nombre"], 
+                "CODAUTO": p["JerarquiaPadres"][0]["Codigo"],
+                "CCAA": p["JerarquiaPadres"][0]["Nombre"].split(",")[0]
             }
-            for fila in filas
-            if fila.find("td", {"class": "col-hora"}) is not None
+            for p in data
+            if p["Codigo"] and int(p["Codigo"]) in range(1, 50)
         ]
-
-        return lista
-
-    @task(task_id="guardar_csv")
-    def guardar(lista: list[dict], codigo_estacion: str) -> None:
-        print(lista)
-
-        with open(
-            f"./{codigo_estacion.split('-')[0]}_llegadas.csv", "w", encoding="utf-8"
-        ) as f:
-            writer = csv.DictWriter(f, fieldnames=lista[0].keys())
-            writer.writeheader()
-            writer.writerows(lista)
-
-            print(f"CSV guardado en: {f.name}")
-
-    codigo_estacion = resolver_codigo_estacion()
-    html = llegadas_adif(codigo_estacion)
-    tabla = extraer_tabla(html)
-
-    (
-        EmptyOperator(task_id="inicio")
-        >> codigo_estacion
-        >> html
-        >> tabla
-        >> guardar(tabla, codigo_estacion)
-        >> EmptyOperator(task_id="fin")
-    )
+        
+        print("Data object generated")
+        
+        return provincias
 
 
-salidas()
-llegadas()
+    @task(task_id="Carga-Provincia-INE")
+    def load(data):
+        path = "resultados/provincias_INE.csv"
+        print(f"Guardando resultados en {path}")
+        to_csv(path, data)
+
+
+    raw_data = extract()
+    transformed_data = transform(raw_data)
+    load(transformed_data)
+
+
+@dag(
+    dag_id="Estación-Renfe",
+    tags=["pipeline", "INE", "Estaciones", "Tren-ES", "Renfe"],
+    start_date=datetime(2026, 1, 1),
+    schedule="@yearly"
+)
+def extraccion_Renfe_estacion():
+
+    query = """
+    SELECT "_id" as "ID", "CODIGO", "DESCRIPCION", "LATITUD", "LONGITUD", "DIRECION" as "DIRECCION", "CP", "POBLACION", "PROVINCIA", "PAIS"
+    FROM "783e0626-6fa8-4ac7-a880-fa53144654ff" 
+    WHERE "FEVE" = 'NO'
+    """
+
+
+    @task(task_id="Extracción-Estación-Renfe")
+    def extract():
+        print(f"Request {RENFE_SQL_URL}:\n{query}")
+        response = requests.get(RENFE_SQL_URL, params={"sql": query})
+        print(f"Query response recived in {response.elapsed}" if response else "Query error")
+        
+        return response.json()
+
+
+    @task(task_id="Transformación-Estación-Renfe")
+    def transform(data):
+        resultados = data.get("result", {}).get("records", [])
+        
+        return [res for res in resultados if all(res.values())]
+
+
+    @task(task_id="Carga-Estación-Renfe")
+    def load(data):
+        path = "resultados/estaciones_Renfe.csv"
+        print(f"Guardando resultados en {path}")
+        to_csv(path, data)
+
+
+    raw_data = extract()
+    transformed_data = transform(raw_data)
+    load(transformed_data)
+
+
+@dag(
+    dag_id="Horario-Ruta-Renfe",
+    tags=["pipeline", "INE", "Rutas", "Horarios", "Tren-ES", "Renfe", "Mortal"],
+    start_date=datetime(2026, 1, 1),
+    schedule="@yearly"
+)
+def extraccion_Renfe_horarios_rutas():
+
+    subset_municipios = [
+        "10504", # Viana de Cega
+        "10602", # Cabezón
+        "10610", # Valladolid Universidad
+        "10600", # Valladolid Campo Grande
+        "14100", # Palencia
+    ]
+
+    # TODO: Terminar este dag XD
+
+    @task(task_id="Extracción-Horario-Renfe")
+    def extract():
+        return "Hola amigo"
+
+
+    raw_data = extract()
+
+
+extraccion_municipio()
+extraccion_INE_municipio()
+extraccion_INE_provincias()
+extraccion_Renfe_estacion()
+extraccion_Renfe_horarios_rutas()
