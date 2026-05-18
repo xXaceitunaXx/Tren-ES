@@ -1,14 +1,23 @@
 from airflow.sdk import dag, task
 from airflow.sensors.external_task import ExternalTaskSensor
-from pendulum import datetime
+
+from playwright.sync_api import sync_playwright
+
+from bs4 import BeautifulSoup
+
+from pendulum import datetime, now
+from itertools import permutations
 
 import requests
+import pendulum
 import csv
 
 
 INE_REQUEST_URL = "https://servicios.ine.es/wstempus/js/ES/VALORES_VARIABLE"
 WIKIDATA_URL = "https://query.wikidata.org/sparql"
 RENFE_SQL_URL = 'https://data.renfe.com/api/3/action/datastore_search_sql'
+RENFE_HORARIOS_URL = "https://www.renfe.com/es/es/viajar/informacion-util/horarios"
+RENFE_RUTA_URL = "https://horarios.renfe.com/HIRRenfeWeb"
 
 
 def to_csv(path, data):
@@ -17,6 +26,7 @@ def to_csv(path, data):
         writer = csv.DictWriter(fichero, keys)
         writer.writeheader()
         writer.writerows(data)
+
 
 @dag(
     dag_id="Municipio-WIKIDATA",
@@ -233,29 +243,141 @@ def extraccion_Renfe_estacion():
 
 @dag(
     dag_id="Horario-Ruta-Renfe",
-    tags=["pipeline", "INE", "Rutas", "Horarios", "Tren-ES", "Renfe", "Mortal"],
+    tags=["pipeline", "Renfe", "Tren-ES"],
     start_date=datetime(2026, 1, 1),
-    schedule="@yearly"
+    schedule="@daily"
 )
 def extraccion_Renfe_horarios_rutas():
 
-    subset_municipios = [
-        "10504", # Viana de Cega
-        "10602", # Cabezón
-        "10610", # Valladolid Universidad
-        "10600", # Valladolid Campo Grande
-        "14100", # Palencia
+    ESTACIONES = [
+#        "10504",  # Viana de Cega
+#        "10602",  # Cabezón
+#        "10610",  # Valladolid Universidad
+        "10600",  # Valladolid Campo Grande
+        "14100",  # Palencia
     ]
 
-    # TODO: Terminar este dag XD
+    FECHAS = [
+        (f"{d.day:02}", f"{d.month:02}", str(d.year))
+        for d in [now().add(days=i) for i in range(1)]
+    ]
 
-    @task(task_id="Extracción-Horario-Renfe")
+    COMBINACIONES = [
+        (origen, destino, *fecha)
+        for origen, destino in permutations(ESTACIONES, 2)
+        for fecha in FECHAS
+    ]
+
+
+    def extraer_linea(page, url):
+        soup = BeautifulSoup(page.goto(url).text(), "html.parser")
+
+        filas = soup.find_all("tr", class_="irf-renfe-travel__tr")
+        paradas = []
+        salida = None
+        llegada = None
+
+        for fila in filas:
+            celdas = fila.find_all("td", class_="txt_gral")
+            if not celdas:
+                continue
+            estacion, hora_salida, hora_llegada = celdas[:3]
+            paradas.append(estacion.get_text(strip=True))
+            if salida is None and hora_salida.get_text(strip=True):
+                salida = hora_salida.get_text(strip=True)
+            if hora_llegada.get_text(strip=True):
+                llegada = hora_llegada.get_text(strip=True)
+
+        return {"paradas": paradas, "salida": salida, "llegada": llegada}
+
+
+    def calcular_duracion(salida, llegada):
+        t_salida = pendulum.from_format(salida, "HH.mm")
+        t_llegada = pendulum.from_format(llegada, "HH.mm")
+
+        if t_llegada < t_salida:
+            t_llegada = t_llegada.add(days=1)
+
+        horas, resto = divmod((t_llegada - t_salida).seconds, 3600)
+        return f"{horas}h {resto // 60:02}min"
+
+
+    def extraer_resultado(page, origen, destino, dia, mes, agno) -> tuple[list, list]:
+        page.goto(RENFE_HORARIOS_URL)
+        frame = page.frame_locator("#ContenidoPrincipal")
+
+        frame.locator("select#O").select_option(value=origen)
+        frame.locator("select#D").select_option(value=destino)
+        frame.locator("select#DF").select_option(value=dia)
+        frame.locator("select#MF").select_option(value=mes)
+        frame.locator("select#AF").select_option(value=agno)
+        frame.locator('button[title="BUSCAR"]').click()
+        frame.locator("tr.odd.irf-travellers-table__tr").first.wait_for(timeout=10000)
+
+        soup = BeautifulSoup(frame.locator("body").inner_html(), "html.parser")
+        trenes = soup.find_all("tr", class_="odd irf-travellers-table__tr")
+
+        rutas, horarios = [], []
+
+        for tren in trenes:
+            celda = tren.find("td", class_="txt_borde1")
+            tipo, numero = celda.get_text(strip=True).split()[:2]
+            enlace = celda.find("a")["href"]
+
+            url = f"{RENFE_RUTA_URL}/{enlace.split(chr(34))[1].replace(' ', '%20').replace(chr(10), '')}"
+            linea = extraer_linea(page, url)
+
+            rutas.append((" | ".join(linea["paradas"]), tipo, numero))
+            horarios.append((tipo, linea["salida"], linea["llegada"], calcular_duracion(linea["salida"], linea["llegada"])))
+
+        return rutas, horarios
+
+
+    @task(task_id="Extracción-Horario-Ruta-Renfe")
     def extract():
-        return "Hola amigo"
+        with sync_playwright() as p:
+            page = p.chromium.launch(headless=True).new_page()
+            return [extraer_resultado(page, *c) for c in COMBINACIONES]
+
+
+    @task(task_id="Transformación-Horario-Ruta-Renfe")
+    def transform(data):
+        rutas = [ruta for rutas, _ in data for ruta in rutas]
+        horarios = [horario for _, horarios in data for horario in horarios]
+        return {"rutas": rutas, "horarios": horarios}
+
+
+    @task(task_id="Carga-Ruta-Renfe")
+    def load_rutas(data: dict):
+        rutas = [
+            {
+                "CODIGO": ruta[1],
+                "TIPO": ruta[2],
+                "PARADAS": ruta[0],
+            }
+            for ruta in data["rutas"]
+        ]
+        to_csv("resultados/rutas_renfe.csv", rutas)
+
+
+    @task(task_id="Carga-Horario-Renfe")
+    def load_horarios(data: dict):
+        horarios = [
+            {
+                "RECORRIDO": horario[0],
+                "SALIDA": horario[1],
+                "LLEGADA": horario[2],
+                "DURACION": horario[3],
+            }
+            for horario in data["horarios"]
+        ]
+        to_csv("resultados/horarios_renfe.csv", horarios)
 
 
     raw_data = extract()
-
+    transformed_data = transform(raw_data)
+    load_rutas(transformed_data)
+    load_horarios(transformed_data)
 
 extraccion_municipio()
 extraccion_INE_municipio()
