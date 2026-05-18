@@ -1,3 +1,5 @@
 beautifulsoup4
 playwright
 pendulum
+SQLAlchemy
+apache-airflow-providers-mysql

@@ -1,10 +1,6 @@
 from airflow.sdk import dag, task
-from airflow.sensors.external_task import ExternalTaskSensor
-
 from playwright.sync_api import sync_playwright
-
 from bs4 import BeautifulSoup
-
 from pendulum import datetime, now
 from itertools import permutations
 
@@ -378,6 +374,7 @@ def extraccion_Renfe_horarios_rutas():
     transformed_data = transform(raw_data)
     load_rutas(transformed_data)
     load_horarios(transformed_data)
+
 
 extraccion_municipio()
 extraccion_INE_municipio()
