@@ -3,3 +3,4 @@ playwright
 pendulum
 SQLAlchemy
 apache-airflow-providers-mysql
+geopy

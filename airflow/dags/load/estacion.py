@@ -17,7 +17,7 @@ def warehouse_estacion():
             return list(csv.DictReader(fichero))
 
 
-    @task(task_id="Leer-WIKIDATA")
+    @task(task_id="Leer-Renfe-Estacion")
     def read_renfe_estaciones():
         with open("resultados/estaciones_Renfe.csv") as fichero:
             return list(csv.DictReader(fichero))

@@ -3,7 +3,7 @@ from playwright.sync_api import sync_playwright
 from bs4 import BeautifulSoup
 from pendulum import datetime, now
 from itertools import permutations
-from utils.utils import to_csv, normalize_unicode
+from utils.utils import to_csv, normalize_unicode, SUBSET_ESTACIONES
 
 import pendulum
 import requests
@@ -79,23 +79,11 @@ def extraccion_Renfe_estacion():
 )
 def extraccion_Renfe_horarios_rutas():
 
-    ESTACIONES = [
-#        "10504",  # Viana de Cega
-#        "10602",  # Cabezón
-#        "10610",  # Valladolid Universidad
-        "10600",  # Valladolid Campo Grande
-        "14100",  # Palencia
-    ]
-
-    FECHAS = [
-        (f"{d.day:02}", f"{d.month:02}", str(d.year))
-        for d in [now().add(days=i) for i in range(1)]
-    ]
+    FECHA = now().add(days=1)
 
     COMBINACIONES = [
-        (origen, destino, *fecha)
-        for origen, destino in permutations(ESTACIONES, 2)
-        for fecha in FECHAS
+        (origen, destino, f"{FECHA.day:02}", f"{FECHA.month:02}", str(FECHA.year))
+        for origen, destino in permutations(SUBSET_ESTACIONES, 2)
     ]
 
 
@@ -132,19 +120,14 @@ def extraccion_Renfe_horarios_rutas():
         return f"{horas}h {resto // 60:02}min"
 
 
-    def extraer_resultado(page, origen, destino, dia, mes, agno) -> tuple[list, list]:
-        page.goto(RENFE_HORARIOS_URL)
-        frame = page.frame_locator("#ContenidoPrincipal")
+    def extraer_resultado(page, origen, destino, dia, mes, agno):
+        page.goto(
+            f"{RENFE_RUTA_URL}/buscar.do?O={origen}&D={destino}&AF={agno}&MF={mes}&DF={dia}",
+            wait_until="domcontentloaded",
+            timeout=60000
+        )
 
-        frame.locator("select#O").select_option(value=origen)
-        frame.locator("select#D").select_option(value=destino)
-        frame.locator("select#DF").select_option(value=dia)
-        frame.locator("select#MF").select_option(value=mes)
-        frame.locator("select#AF").select_option(value=agno)
-        frame.locator('button[title="BUSCAR"]').click()
-        frame.locator("tr.odd.irf-travellers-table__tr").first.wait_for(timeout=10000)
-
-        soup = BeautifulSoup(frame.locator("body").inner_html(), "html.parser")
+        soup = BeautifulSoup(page.locator("body").inner_html(), "html.parser")
         trenes = soup.find_all("tr", class_="odd irf-travellers-table__tr")
 
         rutas, horarios = [], []
