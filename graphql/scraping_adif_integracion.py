@@ -25,8 +25,12 @@ def obtener_salidas_adif(codigo_estacion: str, nombre_municipio: str) -> list[di
         
         primer_resultado = page.locator('ul#search-results-display-list li.list-group-item a').first
         primer_resultado.wait_for(state="visible", timeout=15000)
-        primer_resultado.click()
-        page.wait_for_load_state("domcontentloaded")
+        
+        url_estacion = primer_resultado.get_attribute("href")
+        # if url_estacion.startswith("/"):
+        #     url_estacion = "https://www.adif.es" + url_estacion
+            
+        page.goto(url_estacion, wait_until="domcontentloaded")
         
         # ------ Cambiamos de pagina ------
         
@@ -49,6 +53,8 @@ def obtener_salidas_adif(codigo_estacion: str, nombre_municipio: str) -> list[di
                     "via": fila.find("td", {"class": "col-via"}).text.strip(),
                     "tren": fila.find("td", {"class": "col-tren"}).text.strip(),
                 })
+                
+        browser.close()
         return lista
     
-print(obtener_salidas_adif("01007", "OSUNA"))
+print(obtener_salidas_adif("17000", "MADRID"))

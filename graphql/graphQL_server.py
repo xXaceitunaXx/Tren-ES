@@ -79,32 +79,49 @@ class Query:
         
         df = pd.read_sql(consulta2, motor)
         lista_viajes = []
+        estaciones_viajes = {} # Cunjunto de estaciones, no se hace más scraping del necesario
+        print(df)
         
         for _, fila in df.iterrows():
             estacion_origen = str(fila["estacion_origen"])
             nombre_municipio = str(fila["municipio"])
             ruta_id = str(fila["ruta_id"])
             
-            try:
-                # Llamamos a Adif usando el origen de esa ruta
-                #viajes_adif = obtener_salidas_adif(estacion_origen, nombre_municipio)
-                viajes= await obtener_salidas_adif(17000, "MADRID")
-                
-            except Exception as error:
-                print("A")
-                
-            for tren in viajes:
+            if estacion_origen not in estaciones_viajes:
+            
+                try:
+                    viajes = await obtener_salidas_adif(estacion_origen, nombre_municipio)
+                    estaciones_viajes[viajes] = []
+                    
+                except Exception as error:
+                    print(f"Error en: {estacion_origen}, {print(error)}")
+                    estaciones_viajes[estacion_origen] = []
+            
+            trayecto = estaciones_viajes[estacion_origen]
+            
+            if trayecto: # Si funciona el scraping
+                for tren in trayecto:
+                    lista_viajes.append(DatosConsulta2(
+                        id=str(uuid.uuid4()), # Generamos un ID virtual único
+                        ruta_id=ruta_id,
+                        tren=tren.get("tren", "Desconocido"),
+                        destino=tren.get("destino", "Desconocido")
+                    ))
+            else:
                 lista_viajes.append(DatosConsulta2(
-                    id=str(uuid.uuid4()), # Generamos un ID virtual único
+                    id=str(uuid.uuid4()), 
                     ruta_id=ruta_id,
-                    tren=tren.get("tren", "Desconocido"),
-                    destino=tren.get("destino", "Desconocido")
+                    tren="Datos en tiempo real no disponibles", # Mensaje de aviso
+                    destino=f"Dirección {nombre_municipio}"     # Usamos el nombre del municipio que sacamos del SQL
                 ))
+                
+            
                 
         return lista_viajes
     
     @strawberry.field
-    def consulta3(self, poblacion_min: int = 20000, poblacion_max: int = 100000, limite: int = 20) -> List[DatosConsulta3]:
+    def consulta3(self, poblacion_min: int = 20000, poblacion_max: int = 100000, limite: int = 20,
+                  rutas_min: int = 1, rutas_max: int = 5) -> List[DatosConsulta3]:
         motor = conectar_bd()
         consulta3 = f"""
         SELECT 
@@ -118,7 +135,7 @@ class Query:
             ON E.id = P.estacion
         WHERE M.n_habitantes BETWEEN {poblacion_min} AND {poblacion_max}
         GROUP BY M.id, M.nombre, M.n_habitantes
-        HAVING COUNT(DISTINCT P.ruta) BETWEEN 1 AND 5
+        HAVING COUNT(DISTINCT P.ruta) BETWEEN {rutas_min} AND {rutas_max}
         LIMIT {limite};"""
         
         df = pd.read_sql(consulta3, motor)

@@ -27,8 +27,6 @@ async def obtener_salidas_adif(codigo_estacion: str, nombre_municipio: str) -> l
         await primer_resultado.wait_for(state="visible", timeout=15000)
         
         url_estacion = await primer_resultado.get_attribute("href")
-        # if url_estacion.startswith("/"):
-        #     url_estacion = "https://www.adif.es" + url_estacion
             
         await page.goto(url_estacion, wait_until="domcontentloaded")
         
