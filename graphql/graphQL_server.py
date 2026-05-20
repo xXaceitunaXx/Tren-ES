@@ -32,6 +32,11 @@ class DatosConsulta2:
     destino: str
 
 @strawberry.type
+class DatosConsulta3:
+    nombre: str
+    numero_habitantes: int
+    numero_paradas: int
+@strawberry.type
 class Query:
     @strawberry.field
     def consulta1(self, n_habit: int = 10000, limite: int = 20) -> List[DatosConsulta1]:
@@ -68,7 +73,7 @@ class Query:
         INNER JOIN Estacion AS E
             ON R.origen = E.id
         INNER JOIN Municipio AS M
-            ON E.municipio = M.id
+            ON E.Municipio = M.id
         WHERE D.distancia < {max_distancia}
         LIMIT {limite};"""
         
@@ -88,7 +93,6 @@ class Query:
             except Exception as error:
                 print("A")
                 
-            # Por cada tren que encontremos en la web, "creamos" una entidad Viaje
             for tren in viajes:
                 lista_viajes.append(DatosConsulta2(
                     id=str(uuid.uuid4()), # Generamos un ID virtual único
@@ -98,5 +102,35 @@ class Query:
                 ))
                 
         return lista_viajes
+    
+    @strawberry.field
+    def consulta3(self, poblacion_min: int = 20000, poblacion_max: int = 100000, limite: int = 20) -> List[DatosConsulta3]:
+        motor = conectar_bd()
+        consulta3 = f"""
+        SELECT 
+            M.nombre, 
+            M.n_habitantes,
+            COUNT(P.ruta) AS total_paradas
+        FROM Municipio M
+        INNER JOIN Estacion E 
+            ON M.id = E.municipio
+        INNER JOIN Parada P 
+            ON E.id = P.estacion
+        WHERE M.n_habitantes BETWEEN {poblacion_min} AND {poblacion_max}
+        GROUP BY M.id, M.nombre, M.n_habitantes
+        HAVING COUNT(DISTINCT P.ruta) BETWEEN 1 AND 5
+        LIMIT {limite};"""
+        
+        df = pd.read_sql(consulta3, motor)
+        
+        lista_estaciones = []
+        for _, fila in df.iterrows():
+            lista_estaciones.append(DatosConsulta3(
+                nombre=str(fila["nombre"]),
+                numero_habitantes=str(fila["n_habitantes"]),
+                numero_paradas=str(fila["total_paradas"]) 
+            ))
+            
+        return lista_estaciones
 
 schema = strawberry.Schema(query=Query)
