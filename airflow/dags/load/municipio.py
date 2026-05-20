@@ -1,12 +1,16 @@
 from airflow.sdk import dag, task
 from airflow.hooks.base import BaseHook
 from sqlalchemy import create_engine, MetaData, Table
+from utils.utils import connect_database
 
 import csv
 
-@dag(dag_id="Warehouse-Municipio")
+@dag(
+    dag_id="Warehouse-Municipio",
+    tags=["Municipio", "Wikidata", "INE", "ETL", "Pipeline"]
+)
 def warehouse_municipio():
-    
+
     @task(task_id="Leer-WIKIDATA")
     def read_wikidata():
         with open("resultados/municipios_WIKIDATA.csv") as fichero:
@@ -47,7 +51,7 @@ def warehouse_municipio():
                 "latitud":      m["coordenadas"].replace("Point(", "").replace(")", "").split()[0],
                 "longitud":     m["coordenadas"].replace("Point(", "").replace(")", "").split()[1],
                 "provincia":    ine_prov["NOMBRE"],
-                "ccaa":         ine_prov["CCAA"],
+                "CCAA":         ine_prov["CCAA"],
             })
 
         return municipios
@@ -55,10 +59,9 @@ def warehouse_municipio():
 
     @task(task_id="Carga-Municipio")
     def load(data):
-        conn = BaseHook.get_connection("warehouse_mariadb")
-        engine = create_engine(f"mysql+pymysql://{conn.login}:{conn.password}@{conn.host}/{conn.schema}")
+        engine = connect_database()
         with engine.connect() as c:
-            tabla = Table("municipio", MetaData(), autoload_with=engine)
+            tabla = Table("Municipio", MetaData(), autoload_with=engine)
             c.execute(tabla.insert().prefix_with("IGNORE"), data)
             c.commit()
 
