@@ -30,22 +30,22 @@ Esta consulta en principio iba a ser **Poblaciones ... haya menos de cinco viaje
 
 ```sql
 SELECT
-    M.id,
     M.nombre,
-    COUNT(DISTINCT V.id) AS num_viajes_hoy
+    M.n_habitantes,
+    COUNT(P.ruta) AS total_parados
 FROM
     Municipio AS M
-    INNER JOIN Estacion AS E ON E.municipio_id = M.id
+    INNER JOIN Estacion AS E ON E.municipio = M.id
     INNER JOIN Parada AS P ON P.estacion = E.id
-    INNER JOIN Viaje AS V ON V.ruta = P.ruta
 WHERE
     M.n_habitantes BETWEEN 20000 AND 100000
     AND V.fecha = CURRENT_DATE
 GROUP BY
     M.id,
-    M.nombre
+    M.nombre,
+    M.n_habitantes
 HAVING
-    COUNT(DISTINCT V.id) BETWEEN 1 AND 3;
+    COUNT(DISTINCT P.ruta) BETWEEN 1 AND 5;
 ```
 
 ## Captura de una instancia
