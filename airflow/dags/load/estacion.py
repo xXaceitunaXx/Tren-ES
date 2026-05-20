@@ -35,7 +35,7 @@ def warehouse_estacion():
                 "longitud":  float(estacion["LONGITUD"]),
                 "municipio": wikidata_index.get(estacion["POBLACION"]),
             }
-            for estacion in renfe
+            for estacion in renfe if wikidata_index.get(estacion["POBLACION"])
         ]
 
 

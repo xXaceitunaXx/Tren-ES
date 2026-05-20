@@ -1,6 +1,5 @@
 from airflow.sdk import dag, task
-from airflow.hooks.base import BaseHook
-from sqlalchemy import create_engine, MetaData, Table
+from sqlalchemy import MetaData, Table
 from utils.utils import connect_database
 
 import csv
