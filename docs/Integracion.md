@@ -9,7 +9,7 @@ El _tech stack_ está formado por:
 
 A continuación se muestra una representación gráfica del sistema
 
-![Diagrama sistema integrador](img/DiagramaTren-es.png)
+![Diagrama sistema integrador](img/DiagramaTren-ES.png)
 
 ## Hibridación
 
