@@ -38,3 +38,5 @@ Los DAG de extracción están programados para ejecutarse de forma automática s
 ## Integración Híbrida
 
 Dependiendo de la consulta del usuario, si el sistema detecta que puede usar la fuente de datos en tiempo real de la web de Adif, este tratará de obtener la información mediante un scrapping web desdoblando la consulta por Integración Virtual. En ocasiones no es posible utilizar esa fuente (acceso denegado, petición erronea, etc), en esos casos, el sistema usa una fuente de datos menos actualizada/fiable almacenada en el Warehouse para dar respuesta.
+
+> Hemos tenido problemas al realizar esta "hibridación" con la fuente alternativa del Warehouse debido al diseño del Esquema Mediador. Solo hemos conseguido que en caso de no poder acceder a la fuente de datos en tiempo real, se muestre un mensaje de error y unos resultados parcialmente incompletos a partir del Warehouse.
