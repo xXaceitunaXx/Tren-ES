@@ -11,6 +11,22 @@ A continuación se muestra una representación gráfica del sistema
 
 ![Diagrama sistema integrador](img/DiagramaTren-ES.png)
 
-## Hibridación
+## Pipelines ETL
 
+Los pipelines de extracción, transformación y carga de los datos se han implementado como DAGs de Airflow. El flujo es el siguiente:
 
+```
+EXTRACTOR S1 ----> TABLA STAGE (csv) -----+
+                                          |
+                                          |
+                                          |
+                                          |
+EXTRACTOR S2 ----> TABLA STAGE (csv) ---- + ----> TRANSFORM ----> ESQUEMA WAREHOUSE
+                                          |
+                                          |
+                                         ···
+                                          |
+                                          |
+EXTRACTOR Sk ----> TABLA STAGE (csv) -----+
+
+```
