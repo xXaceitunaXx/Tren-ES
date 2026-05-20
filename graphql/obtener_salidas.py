@@ -19,12 +19,11 @@ async def obtener_salidas_adif(codigo_estacion: str, nombre_municipio: str) -> l
         url_busqueda = f"https://www.adif.es/search?q={query_codificada}"
         
         await page.goto(url_busqueda, wait_until="domcontentloaded", timeout=60000)
-        print(url_busqueda, flush=True)
         
         # ------ Página de resultados (ADIF tiene antibot) ------
         
         primer_resultado = page.locator('ul#search-results-display-list li.list-group-item a').first
-        await primer_resultado.wait_for(state="visible", timeout=15000)
+        await primer_resultado.wait_for(state="attached", timeout=15000)
         
         url_estacion = await primer_resultado.get_attribute("href")
             

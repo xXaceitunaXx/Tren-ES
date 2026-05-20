@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from typing import List
 from obtener_salidas import obtener_salidas_adif
+from strawberry.scalars import JSON
 
 def conectar_bd():
     load_dotenv()
@@ -27,15 +28,16 @@ class DatosConsulta1:
 @strawberry.type
 class DatosConsulta2:
     id: str
-    ruta_id: str
-    tren: str
-    destino: str
+    origen: str
+    destinos: JSON
+    
 
 @strawberry.type
 class DatosConsulta3:
     nombre: str
     numero_habitantes: int
     numero_paradas: int
+    
 @strawberry.type
 class Query:
     @strawberry.field
@@ -65,7 +67,7 @@ class Query:
     async def consulta2(self, max_distancia: float = 30, limite: int = 20) -> List[DatosConsulta2]:
         motor = conectar_bd()
         consulta2 = f"""
-        SELECT R.id AS ruta_id, R.origen AS estacion_origen, M.nombre AS municipio
+        SELECT R.id AS ruta_id, R.origen AS estacion_origen, M.nombre AS municipio, R.destino AS estacion_destino
         FROM Ruta AS R
         INNER JOIN Distancia AS D
             ON (R.origen = D.estacion1 AND R.destino = D.estacion2) OR
@@ -80,18 +82,18 @@ class Query:
         df = pd.read_sql(consulta2, motor)
         lista_viajes = []
         estaciones_viajes = {} # Cunjunto de estaciones, no se hace más scraping del necesario
-        print(df)
         
         for _, fila in df.iterrows():
             estacion_origen = str(fila["estacion_origen"])
+            estacion_destino = str(fila["estacion_destino"])
             nombre_municipio = str(fila["municipio"])
-            ruta_id = str(fila["ruta_id"])
+           
             
             if estacion_origen not in estaciones_viajes:
             
                 try:
                     viajes = await obtener_salidas_adif(estacion_origen, nombre_municipio)
-                    estaciones_viajes[viajes] = []
+                    estaciones_viajes[estacion_origen] =viajes
                     
                 except Exception as error:
                     print(f"Error en: {estacion_origen}, {print(error)}")
@@ -102,20 +104,16 @@ class Query:
             if trayecto: # Si funciona el scraping
                 for tren in trayecto:
                     lista_viajes.append(DatosConsulta2(
-                        id=str(uuid.uuid4()), # Generamos un ID virtual único
-                        ruta_id=ruta_id,
-                        tren=tren.get("tren", "Desconocido"),
-                        destino=tren.get("destino", "Desconocido")
+                        id=str(uuid.uuid4()), # Hacemos un ID para poder guardarlo si lo necesitamos
+                        origen=nombre_municipio,
+                        destinos = tren
                     ))
             else:
                 lista_viajes.append(DatosConsulta2(
                     id=str(uuid.uuid4()), 
-                    ruta_id=ruta_id,
-                    tren="Datos en tiempo real no disponibles", # Mensaje de aviso
-                    destino=f"Dirección {nombre_municipio}"     # Usamos el nombre del municipio que sacamos del SQL
+                    origen=nombre_municipio,
+                    destinos = f"Sin datos disponibles a tiempo real"    
                 ))
-                
-            
                 
         return lista_viajes
     
