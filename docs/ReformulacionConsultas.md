@@ -99,57 +99,36 @@ $$
 Estas subconsultas se pueden escribir sobre el esquema mediador como:
 
 ```
-Q2a(id):- Viaje(id, ruta, v1, v2), Ruta(ruta, origen, destino, v3), 
-Distancia(origen, destino, dist), dist<30
+Q2a(id, ruta, infoViaje1, infoViaje2, municipio_origen):- Viaje(id, ruta, infoViaje1, infoViaje2), 
+Ruta(ruta, origen, destino, v3), Distancia(origen, destino, dist), 
+Estacion(origen, id_mun, v4, v5, v6), Municipio(municipio_origen, v7, id_mun, v8, v9, v10, v11), dist<30
 ```
 
 ```
-Q2a(id):- Viaje(id, ruta, v1, v2), Ruta(ruta, origen, destino, v3), 
-Distancia(destino, origen, dist), dist<30
+Q2b(id, ruta, infoViaje1, infoViaje2, municipio_origen):- Viaje(id, ruta, infoViaje1, infoViaje2), 
+Ruta(ruta, origen, destino, v3), Distancia(destino, origen, dist), 
+Estacion(destino, id_mun, v4, v5, v6), Municipio(municipio_origen, v7, id_mun, v8, v9, v10, v11), dist<30
 ```
 
 ### Reformulación GAV/LAV
 
-La consulta en forma GAV queda extremadamente larga, puesto que para calcular distancias hay que cruzar datos con la vista auxiliar
-
-```
-Q2a'(id):- Parada_aux(ruta, num_secuencia, nombre_parada), 
-nombre_origen=getMinSecuencia(num_secuencia), data_renfe_ESTACION(v1, estacion, nombre_origen, 
-v3, v4, v5, v6, v7, v8, pais), adif_SALIDAS(fecha, horario, v10, v11, estacion), 
-id=secuencia(), pais==España, Parada_aux(ruta, num_secuencia, nombre_parada), 
-nombre_origen=getMinSecuencia(num_secuencia), nombre_destino=getMaxSecuencia(num_secuencia), 
-data_renfe_ESTACION(v1, origen, nombre_origen, v12, v13, v14, v15, v16, v17, pais), 
-data_renfe_ESTACION(v36, destino, nombre_destino, v18, v19, v20, v21, v22, v23, pais), 
-pais==España, data_renfe_ESTACION(v24, origen, v25, latitud_1, longitud_1, v26, v27, 
-v28, v29, pais), data_renfe_ESTACION(v30, destino, v31, latitud_2, longitud_2, v32, 
-v33, v34, v35, pais), distancia=dist(latitud_1, latitud_2, longitud_1, longitud_2), 
-origen < destino, pais==España, dist<30
-```
-
-Tras simplificar, la consulta queda como:
-
-```
-Q2a'(id):- Parada_aux(ruta, num_secuencia, nombre_parada), 
-nombre_origen=getMinSecuencia(num_secuencia), nombre_destino=getMaxSecuencia(num_secuencia), 
-data_renfe_ESTACION(v1, origen, nombre_origen, latitud_1, longitud_1, v2, v3, v4, v5, v6), 
-data_renfe_ESTACION(v7, destino, nombre_destino, latitud_2, longitud_2, v8, v9, v10, v11, 
-v12), adif_SALIDAS(fecha, horario, v13, v14, origen), id=secuencia(), 
-distancia=dist(latitud_1, latitud_2, longitud_1, longitud_2), 
-pais==España, origen < destino, distancia<30
-```
-
-Q2b' cubrirá aquellos casos en los que destino < origen.
-
-```
-Q2a'(id):- Parada_aux(ruta, num_secuencia, nombre_parada), 
-nombre_origen=getMinSecuencia(num_secuencia), nombre_destino=getMaxSecuencia(num_secuencia), 
-data_renfe_ESTACION(v1, origen, nombre_origen, latitud_1, longitud_1, v2, v3, v4, v5, v6), 
-data_renfe_ESTACION(v7, destino, nombre_destino, latitud_2, longitud_2, v8, v9, v10, v11, 
-v12), adif_SALIDAS(fecha, horario, v13, v14, origen), id=secuencia(), 
-distancia=dist(latitud_1, latitud_2, longitud_1, longitud_2), 
-pais==España, destino < origen, distancia<30
-```
+No hemos sido capaces de hacer ninguna de las formulaciones correctamente por su extensión
 
 ## Consulta 3
 
-Si vemos la definición de la consulta 3, podemos ver que para poder obtener las estaciones con 0 viajes entre sí debemos hacer un `LEFT JOIN` sobre el esquema mediador, y no sabemos como poner dicha operación en forma conjuntiva. Por tanto, tampoco sabríamos escribir la consulta con la reformulación GAV o la reformulación LAV. 
+Esta consulta se puede escribir en el esquema mediador como:
+
+```
+Q3(nombre, numeroParadas, numeroHabitantes):-
+Municipio(id, nombre, n_habitantes, v1, v2, v3, v4),
+Estacion(idE, id, v5, v6, v7),
+Parada(ruta, idE, v8, v9),
+Viaje(v10, ruta, CURRENT_DATE, v11),
+n_habitantes >= 20000,
+n_habitantes <= 100000,
+COUNT(DISTINCT ruta) >= 1,
+COUNT(DISTINCT ruta) <= 5. 
+```
+### Reformulación GAV/LAV
+
+No hemos sido capaces de hacer ninguna de las formulaciones correctamente por su extensión
