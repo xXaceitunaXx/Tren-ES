@@ -18,6 +18,7 @@ def to_csv(nombre, contenido):
 def extraer_provincias():
     provincias_response = requests.get(f"{INE_REQUEST_URL}/{INE_PROVINCIAS}?det=2")
     provincias_json = provincias_response.json()
+    print(provincias_json)
     provincias = [
             {
                 "CPRO": p["Codigo"], 
@@ -50,8 +51,8 @@ def extraer_municipios():
      
 
 def main():
-   # extraer_provincias() 
-   extraer_municipios()
+   extraer_provincias() 
+   # extraer_municipios()
 
 if __name__ == "__main__":
     main()

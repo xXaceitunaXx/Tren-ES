@@ -24,7 +24,8 @@ El archivo en su origen tenía los siguientes campos:
 Para hacer la consulta a la api decidimos utilizar la consulta via sentencia sql para mayor control, ya que la documentación de la api era bastante poco clara (los ejemplos estaban hechos en Python2). La consulta que acabamos realizando es la siguiente:
 
 ```sql
-SELECT "_id" as "ID", "CODIGO", "DESCRIPCION", "LATITUD", "LONGITUD", "DIRECION" as "DIRECCION", "CP", "POBLACION", "PROVINCIA", "PAIS"
+SELECT "_id" as "ID", "CODIGO", "DESCRIPCION", "LATITUD", "LONGITUD", "DIRECION" 
+AS "DIRECCION", "CP", "POBLACION", "PROVINCIA", "PAIS"
     FROM "783e0626-6fa8-4ac7-a880-fa53144654ff" 
     WHERE "FEVE" = 'NO'
 ```

@@ -9,7 +9,7 @@ BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 echo "Generando PDF en $BASE_DIR..."
 
 pandoc \
-    "$BASE_DIR/etc/InformeCompletoHito3.md" \
+    "$BASE_DIR/etc/InformeCompleto.md" \
     "$BASE_DIR/docs/EsquemaMediador.md" \
     "$BASE_DIR/docs/FormulacionSQL.md" \
     "$BASE_DIR/docs/EsquemasOrigen.md" \
@@ -19,11 +19,15 @@ pandoc \
     "$BASE_DIR/docs/ScrapingADIF.md" \
     "$BASE_DIR/docs/ScrapingRENFE.md" \
     "$BASE_DIR/docs/SPARQLWikidata.md" \
-        -o "$BASE_DIR/etc/InformeHito3.pdf" \
+    "$BASE_DIR/docs/ApiRenfe.md" \
+    "$BASE_DIR/docs/ApiINE.md" \
+    "$BASE_DIR/docs/Integracion.md" \
+    "$BASE_DIR/docs/LimitesRetos.md" \
+        -o "$BASE_DIR/etc/InformeHito4.pdf" \
         --toc \
         --number-sections \
         -V colorlinks=true \
         -V urlcolor=blue \
         -V geometry:margin=2.5cm
 
-echo "¡Hecho! El archivo se ha generado en $BASE_DIR/InformeHito3.pdf"
+echo "¡Hecho! El archivo se ha generado en $BASE_DIR/InformeHito4.pdf"

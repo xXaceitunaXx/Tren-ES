@@ -21,7 +21,8 @@ Como se puede ver, el programa solo hace scraping sobre dos estaciones para un d
 4. Normalizamos el hiperenlace para que el valor extraído del HTML sea compatible con el formato esperado por la fuente. Se trata de resolver una heterogeneidad sintáctica producida por saltos de línea y espacios en blanco en la representación de la URL. Para ello, se eliminan los saltos de línea y se sustituyen los espacios en blanco por *%20*, de tal forma que la url:
 
 ```html
-horarios.renfe.com/HIRRenfeWeb/recorrido.do?O=10600&D=14100&F=2026-04-20&T=04073&G=1&TT=ALVIA%20%20%20%20%20%20%20%20%20%20%20%20%20%20 &ID=s&FDS=2026-04-20&DT=33 min.
+horarios.renfe.com/HIRRenfeWeb/recorrido.do?O=10600&D=14100&F=2026-04-20&T=04073&G=1 ...
+&TT=ALVIA%20%20%20%20%20%20%20%20%20%20%20%20%20%20 &ID=s&FDS=2026-04-20&DT=33 min.
 ```
 
 Equivale a la imagen de debajo.

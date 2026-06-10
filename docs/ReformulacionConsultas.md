@@ -101,13 +101,15 @@ Estas subconsultas se pueden escribir sobre el esquema mediador como:
 ```
 Q2a(id, ruta, infoViaje1, infoViaje2, municipio_origen):- Viaje(id, ruta, infoViaje1, infoViaje2), 
 Ruta(ruta, origen, destino, v3), Distancia(origen, destino, dist), 
-Estacion(origen, id_mun, v4, v5, v6), Municipio(municipio_origen, v7, id_mun, v8, v9, v10, v11), dist<30
+Estacion(origen, id_mun, v4, v5, v6), Municipio(municipio_origen, v7, id_mun, v8, v9, v10, v11), 
+dist<30
 ```
 
 ```
 Q2b(id, ruta, infoViaje1, infoViaje2, municipio_origen):- Viaje(id, ruta, infoViaje1, infoViaje2), 
 Ruta(ruta, origen, destino, v3), Distancia(destino, origen, dist), 
-Estacion(destino, id_mun, v4, v5, v6), Municipio(municipio_origen, v7, id_mun, v8, v9, v10, v11), dist<30
+Estacion(destino, id_mun, v4, v5, v6), Municipio(municipio_origen, v7, id_mun, v8, v9, v10, v11), 
+dist<30
 ```
 
 ### Reformulación GAV/LAV

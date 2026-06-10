@@ -1,6 +1,8 @@
 ---
-title: Sistema Agregador de Ferrocarriles Españoles
+title: Sistema Integrador de Ferrocarriles Españoles
+subtitle: Hito Final | Grupo 4
 author: Víctor Elvira Fernández, Juan Horrillo Crespo, Sergio Velasco de Pedro
-date: 15-04-2026
+date: 20-05-2026
+lang: es-ES
 ---
 
